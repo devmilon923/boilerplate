@@ -1,6 +1,6 @@
 import { registerUser } from "./user.controller";
 import mongoose, { Schema } from "mongoose";
-import { IUser, IOTP } from "./user.interface";
+import { IUser, IOTP, MoodEnum } from "./user.interface";
 import { ERole } from "../../config/role";
 
 const UserSchema = new Schema<IUser>(
@@ -8,9 +8,48 @@ const UserSchema = new Schema<IUser>(
     name: { type: String, trim: true },
     email: { type: String, required: true, unique: true, trim: true },
     password: { type: String, trim: true },
-    phone: { type: String, trim: true },
-    facebookLink: { type: String, trim: true },
-    instagramLink: { type: String, trim: true },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+      required: false,
+      default: null,
+    },
+    ageRange: { type: String, trim: true, default: null },
+    address: { type: String, trim: true, default: null },
+    user_mood: {
+      type: String,
+      enum: MoodEnum,
+      default: null,
+      required: false,
+    },
+    jurnals: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Jurnals",
+      required: false,
+      default: [],
+    },
+    chat_history_with_ai: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "aichats",
+      required: false,
+      default: [],
+    },
+    profile_status: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    blockStatus: {
+      type: Date,
+      required: false,
+      default: null,
+    },
+    conections: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "friends",
+      required: false,
+      default: [],
+    },
     image: {
       type: {
         publicFileURL: { type: String, trim: true },
@@ -33,8 +72,7 @@ const UserSchema = new Schema<IUser>(
       type: Boolean,
       default: true,
     },
-    fcmToken: { type: String, trim: true }, //-------> push notification(firebase)
-    oneSignalPlayerId: { type: String, trim: true }, //------------------->push notification(oneSignal)
+    fcmToken: { type: String, trim: true },
     isRequest: {
       type: String,
       enum: ["approve", "deny", "send"],

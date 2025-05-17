@@ -27,20 +27,21 @@ router.post("/forget-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/verify-otp", verifyOTP);
 router.post("/resend-otp", resendOTP);
-router.post("/change-password", changePassword);
-router.patch("/profile-update", upload.single("image"), updateUser);
-
-router.get("/my-profile", getSelfInfo);
-
-router.delete(
-  "/account-delete",
-  guardRole(["admin", "user", "manager"]),
-  deleteUser
+router.post("/change-password", guardRole(["admin", "user"]), changePassword);
+router.patch(
+  "/profile-update",
+  guardRole(["admin", "user"]),
+  upload.single("image"),
+  updateUser
 );
+
+router.get("/my-profile", guardRole(["admin", "user"]), getSelfInfo);
+
+router.delete("/account-delete", guardRole(["admin", "user"]), deleteUser);
 
 //----------------------->Admin route <--------------------------------
 
-router.post("/admin-login", adminloginUser);
+router.post("/admin-login", guardRole("admin"), adminloginUser);
 router.get("/user-list", guardRole("admin"), getAllUsers);
 
 export const UserRoutes = router;

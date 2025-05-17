@@ -16,9 +16,7 @@ import { TRole } from "../../config/role";
 export const registerUserService = async (
   name: string,
   email: string,
-  password: string,
-  facebookLink: string,
-  instagramLink: string
+  password: string
 ) => {
   const start = Date.now();
 
@@ -61,34 +59,23 @@ export const createUser = async ({
   name,
   email,
   image,
-  facebookLink,
-  instagramLink,
   hashedPassword,
-  oneSignalPlayerId,
-  phone,
   fcmToken,
 }: {
   name: string;
   email: string;
-  facebookLink: string;
-  instagramLink: string;
+
   hashedPassword: string | null;
   fcmToken: string;
   image: any;
-  oneSignalPlayerId: string;
-  phone: string;
 }): Promise<{ createdUser: IUser }> => {
   try {
     const createdUser = new UserModel({
       name,
       email,
-      facebookLink,
-      instagramLink,
       image,
       password: hashedPassword,
       fcmToken,
-      oneSignalPlayerId,
-      phone,
     });
 
     await createdUser.save();

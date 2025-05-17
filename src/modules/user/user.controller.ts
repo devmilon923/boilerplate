@@ -42,33 +42,15 @@ import {
 } from "../../utils/JwtToken";
 import mongoose from "mongoose";
 
-import {
-  sendPushNotification,
-  sendPushNotificationOneSignal,
-} from "../notifications/pushNotification/pushNotification.controller";
+import { sendPushNotification } from "../notifications/pushNotification/pushNotification.controller";
 import { IUserPayload } from "../../middlewares/roleGuard";
+import { validateUserLockStatus } from "../../middlewares/lock";
 
 export const registerUser = catchAsync(async (req: Request, res: Response) => {
-  const {
-    name,
-    email,
-    facebookLink,
-    instagramLink,
-    password,
-    phone,
-    fcmToken,
-    oneSignalPlayerId,
-  } = req.body;
-
+  const { name, email, password, fcmToken } = req.body;
   // Validate that the role is provided; if not, throw an error.
   // Call the service to register the user, which returns an OTP.
-  const { otp } = await registerUserService(
-    name,
-    email,
-    password,
-    facebookLink,
-    instagramLink
-  );
+  const { otp } = await registerUserService(name, email, password);
   // Generate a token for the registration process.
   const token = generateRegisterToken({ email });
   // Immediately send a response back to the client.
@@ -103,13 +85,9 @@ export const registerUser = catchAsync(async (req: Request, res: Response) => {
       const { createdUser } = await createUser({
         name,
         email,
-        facebookLink,
-        instagramLink,
         image,
         hashedPassword,
         fcmToken,
-        oneSignalPlayerId,
-        phone,
       });
 
       // Calculate OTP expiration (60 seconds from now)
@@ -140,7 +118,6 @@ export const registerUser = catchAsync(async (req: Request, res: Response) => {
       // Emit the notification.
       await emitNotification(notificationPayload);
       // --------> End Emit notification <----------------
-
       // --------> Send push notification via FCM (if fcmToken is provided) <----------------
       if (fcmToken) {
         try {
@@ -177,14 +154,7 @@ export const resendOTP = catchAsync(async (req: Request, res: Response) => {
   } catch (error: any) {
     throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid token");
   }
-
   const email = decoded.email as string;
-
-  // await delCache(email);
-  // if (!user) {
-  //   throw new ApiError(httpStatus.NOT_FOUND, "user not found for this email.");
-  // }
-
   const now = new Date();
   const otpRecord = await OTPModel.findOne({ email });
 
@@ -232,7 +202,7 @@ export const loginUser = catchAsync(async (req: Request, res: Response) => {
   if (user.isDeleted) {
     throw new ApiError(404, "your account is deleted.");
   }
-  // await validateUserLockStatus(user);
+  await validateUserLockStatus(user);
   const userId = user._id as string;
   const token = generateToken({
     id: userId,
@@ -268,13 +238,6 @@ export const loginUser = catchAsync(async (req: Request, res: Response) => {
   if (!isPasswordValid) {
     throw new ApiError(401, "Wrong password!");
   }
-  // if (user.role !== role) {
-  //   throw new ApiError(
-  //     401,
-  //     `You are not authorized as a ${role} to access the app!`
-  //   );
-  // }
-  // Fetch manager type if user is a manager
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -283,11 +246,11 @@ export const loginUser = catchAsync(async (req: Request, res: Response) => {
     data: {
       user: {
         _id: user._id,
-        name: user.name,
-        email: user.email,
-        image: user?.image?.publicFileURL,
-        role: user.role,
-        phone: user?.phone,
+        name: user?.name,
+        email: user?.email,
+        image: user?.image?.publicFileURL || "",
+        role: user?.role,
+        profile_status: user?.profile_status,
       },
       token,
     },
@@ -404,16 +367,10 @@ export const verifyOTP = catchAsync(async (req: Request, res: Response) => {
 
 export const updateUser = catchAsync(async (req: Request, res: Response) => {
   try {
-    const { name, facebookLink, instagramLink, phone } = req.body;
+    const { name, ageRange, address } = req.body;
 
-    let decoded;
-    try {
-      decoded = verifyToken(req.headers.authorization);
-    } catch (error: any) {
-      return sendError(res, error);
-    }
+    let decoded = req.user as IUserPayload;
     const userId = decoded.id as string;
-
     const user = await findUserById(userId);
     if (!user) {
       throw new ApiError(404, "User not found.");
@@ -422,7 +379,9 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
     const updateData: any = {};
 
     if (name) updateData.name = name;
-    if (phone) updateData.phone = phone;
+    if (ageRange) updateData.ageRange = ageRange;
+    if (address) updateData.address = address;
+
     if (req.file) {
       const imagePath = `public\\images\\${req.file.filename}`;
       const publicFileURL = `/images/${req.file.filename}`;
@@ -437,13 +396,12 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
       _id: updatedUser?._id,
       name: updatedUser?.name,
       email: updatedUser?.email,
-      facebookLink: updatedUser?.facebookLink,
-      instagramLink: updatedUser?.instagramLink,
-      phone: updatedUser?.phone,
-      image: updatedUser?.image?.publicFileURL,
+      ageRange: updatedUser?.ageRange,
+      address: updatedUser?.address,
+      image: updatedUser?.image?.publicFileURL || "",
     };
     if (updatedUser) {
-      sendResponse(res, {
+      return sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
         message: "Profile updated.",
@@ -460,11 +418,8 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
 
 export const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
   try {
-    let decoded;
-    // Verify the token and decode
-    decoded = verifyToken(req.headers.authorization);
+    let decoded = req.user as IUserPayload;
 
-    // Extract user ID from token
     const userId = decoded.id as string;
 
     // Find the user in DB
@@ -479,12 +434,14 @@ export const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      phone: user?.phone,
-      image: user?.image?.publicFileURL,
+      address: user?.address,
+      ageRange: user?.ageRange,
+      image: user?.image?.publicFileURL || "",
+      profile_status: user?.profile_status,
     };
 
     // Send final response
-    sendResponse(res, {
+    return sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: "Profile information retrieved successfully",
@@ -503,13 +460,10 @@ export const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
 export const deleteUser = catchAsync(async (req: Request, res: Response) => {
   try {
     const id = req.query?.id as string;
-
     const deleteableuser = await findUserById(id);
-
     if (!deleteableuser) {
       throw new ApiError(404, "User not found.");
     }
-
     if (deleteableuser.isDeleted) {
       throw new ApiError(404, "This account is already deleted.");
     }
@@ -524,7 +478,7 @@ export const deleteUser = catchAsync(async (req: Request, res: Response) => {
     }
 
     await userDelete(id, deleteableuser.email);
-    sendResponse(res, {
+    return sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: "Account deleted successfully",
@@ -542,18 +496,11 @@ export const changePassword = catchAsync(
   async (req: Request, res: Response) => {
     try {
       const { oldPassword, newPassword } = req.body;
-
       if (!oldPassword || !newPassword) {
         throw new Error("Please provide both old password and new password.");
       }
 
-      let decoded;
-      try {
-        decoded = verifyToken(req.headers.authorization);
-      } catch (error: any) {
-        return sendError(res, error);
-      }
-
+      let decoded = req.user as IUserPayload;
       const email = decoded.email as string;
       const user = await findUserByEmail(email);
 
