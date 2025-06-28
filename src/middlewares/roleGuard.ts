@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import ApiError from "../errors/ApiError";
+import { TRole } from "../config/role";
 
 export interface IUserPayload extends jwt.JwtPayload {
   id: string;
@@ -8,10 +9,7 @@ export interface IUserPayload extends jwt.JwtPayload {
   email: string;
 }
 
-type Role = "admin" | "manager" | "user";
-type Roles = Role | Role[]; // single or multiple roles
-
-export const guardRole = (roles: Roles) => {
+export const guardRole = (roles: TRole | TRole[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
@@ -26,13 +24,13 @@ export const guardRole = (roles: Roles) => {
       ) as IUserPayload;
 
       // Attach the decoded payload to the request object
-      req.user = decoded;
+      (req as any).auth = decoded;
 
       const userRole = decoded.role;
 
       // Check if the user has one of the allowed roles
       if (
-        (Array.isArray(roles) && roles.includes(userRole as Role)) ||
+        (Array.isArray(roles) && roles.includes(userRole as TRole)) ||
         roles === userRole
       ) {
         return next();

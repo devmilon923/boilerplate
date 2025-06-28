@@ -27,9 +27,10 @@ export const createBookMarkController = catchAsync(
       const articalsId = req.query.id as string;
       const user = await findUserById(userId);
       if (
-        user?.role !== "user" &&
-        user?.role !== "manager" &&
-        user?.role !== "admin"
+        user?.role !== "admin" &&
+        user?.role !== "carer" &&
+        user?.role !== "nurse" &&
+        user?.role !== "cleaner"
       ) {
         throw new Error(
           "Guest user is not allowed to save articals in bookmark"
@@ -75,9 +76,10 @@ export const removeBookMarkController = catchAsync(
       const articalsId = req.query.id as string;
       const user = await findUserById(userId);
       if (
-        user?.role !== "user" &&
-        user?.role !== "manager" &&
-        user?.role !== "admin"
+        user?.role !== "admin" &&
+        user?.role !== "carer" &&
+        user?.role !== "nurse" &&
+        user?.role !== "cleaner"
       ) {
         throw new Error(
           "Guest user is not allowed to save articals in bookmark"
@@ -122,28 +124,32 @@ export const getBookMarkController = catchAsync(
       page,
       limit
     );
-    // Assuming result has the shape: { data: bookmarks, pagination: { totalPage, currentPage, prevPage, nextPage, limit, totalItem } }
     const bookmarks = result.data;
-    // const pagination = result.pagination;
-
+    const pagination = result.pagination;
+    // Patch: convert null to 0 for prevPage/nextPage to match expected type
+    const patchedPagination = {
+      ...pagination,
+      prevPage: pagination.prevPage ?? 0,
+      nextPage: pagination.nextPage ?? 0,
+      limit,
+      totalItem: pagination.totalData,
+    };
     if (!bookmarks || bookmarks.length === 0) {
       return sendResponse(res, {
         statusCode: httpStatus.NOT_FOUND,
         success: false,
         message: "No bookmarks found",
         data: [],
-        // pagination,
+        pagination: patchedPagination,
       });
     }
-
     // Map response data to include only id, isBooked, createdAt, and event details.
-
     return sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: "Bookmarks retrieved successfully",
-      data: result,
-      // pagination,
+      data: bookmarks,
+      pagination: patchedPagination,
     });
   }
 );

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ERole } from "../../config/role";
 
 interface ValidationResult {
   isOk: boolean;
@@ -8,7 +9,7 @@ interface ValidationResult {
 export const validateUserInput = (
   name: string,
   email: string,
-  password: string,
+  password: string
 ): ValidationResult | null => {
   if (!name || !email || !password) {
     return { isOk: false, message: "Please fill all the fields" };
@@ -52,5 +53,9 @@ export const registerUserValidationSchema = z.object({
         invalid_type_error: "password must be a string",
       })
       .min(8, "Password must be at least 8 characters long"),
+    role: z.enum(ERole as [string, ...string[]], {
+      required_error: "role is required!",
+      invalid_type_error: `role must be one of: ${ERole.join(", ")}`,
+    }),
   }),
 });

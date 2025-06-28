@@ -1,4 +1,4 @@
-import { registerUser } from "./user.controller";
+import { UserController } from "../user/user.controller";
 import mongoose, { Schema } from "mongoose";
 import { IUser, IOTP, MoodEnum } from "./user.interface";
 import { ERole } from "../../config/role";
@@ -64,8 +64,8 @@ const UserSchema = new Schema<IUser>(
     role: {
       type: String,
       enum: ERole,
-      required: true,
-      default: "user",
+      required: false,
+      default: null,
     },
 
     isVerified: {

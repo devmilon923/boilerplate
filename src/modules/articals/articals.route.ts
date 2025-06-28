@@ -6,5 +6,8 @@ const router = Router();
 
 router
   .route("/")
-  .get(guardRole(["admin", "manager", "user"]), ArticalsController.getArticals);
+  .get(
+    guardRole(["admin", "carer", "nurse", "cleaner"]),
+    ArticalsController.getArticals
+  );
 export const ArticalsRoute = router;

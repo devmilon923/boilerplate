@@ -8,8 +8,20 @@ import {
 
 const router = express.Router();
 
-router.get("/add", guardRole("user"), createBookMarkController);
-router.delete("/remove", guardRole("user"), removeBookMarkController);
-router.get("/", guardRole("user"), getBookMarkController);
+router.get(
+  "/add",
+  guardRole(["admin", "carer", "nurse", "cleaner"]),
+  createBookMarkController
+);
+router.delete(
+  "/remove",
+  guardRole(["admin", "carer", "nurse", "cleaner"]),
+  removeBookMarkController
+);
+router.get(
+  "/",
+  guardRole(["admin", "carer", "nurse", "cleaner"]),
+  getBookMarkController
+);
 
 export const BookMarkRoutes = router;

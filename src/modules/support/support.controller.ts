@@ -16,6 +16,7 @@ import { emitNotification } from "../../utils/socket";
 import { UserModel } from "../user/user.model";
 import mongoose, { Types } from "mongoose";
 import ApiError from "../../errors/ApiError";
+import paginationBuilder from "../../utils/paginationBuilder";
 
 export const needSupport = catchAsync(async (req: Request, res: Response) => {
   let decoded;
@@ -78,32 +79,29 @@ export const needSupport = catchAsync(async (req: Request, res: Response) => {
 export const getSupport = catchAsync(async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
-  //const date = req.query.date as string;
-  // const address = req.query.address as string;
-  //const search = req.query.search as string;
-
-  const { support, totalSupport, totalPages } = await supportList(page, limit);
-
-  const prevPage = page > 1 ? page - 1 : null;
-  const nextPage = page < totalPages ? page + 1 : null;
-
+  const { support, totalSupport } = await supportList(page, limit);
+  const pagination = paginationBuilder({
+    totalData: totalSupport,
+    currentPage: page,
+    limit,
+  });
+  // Patch: convert null to 0 for prevPage/nextPage to match expected type
+  const patchedPagination = {
+    ...pagination,
+    prevPage: pagination.prevPage ?? 0,
+    nextPage: pagination.nextPage ?? 0,
+    limit,
+    totalItem: pagination.totalData,
+  };
   if (support.length === 0) {
     return sendResponse(res, {
       statusCode: httpStatus.NO_CONTENT,
       success: false,
       message: "No support found in this area",
       data: [],
-      pagination: {
-        totalPage: totalPages,
-        currentPage: page,
-        prevPage: prevPage ?? 1,
-        nextPage: nextPage ?? 1,
-        limit,
-        totalItem: totalSupport,
-      },
+      pagination: patchedPagination,
     });
   }
-
   const responseData = support.map((support) => {
     return {
       _id: support._id,
@@ -113,20 +111,12 @@ export const getSupport = catchAsync(async (req: Request, res: Response) => {
       createdAt: support.createdAt,
     };
   });
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "All supports retrived successfully",
     data: responseData,
-    pagination: {
-      totalPage: totalPages,
-      currentPage: page,
-      prevPage: prevPage ?? 1,
-      nextPage: nextPage ?? 1,
-      limit,
-      totalItem: totalSupport,
-    },
+    pagination: patchedPagination,
   });
 });
 

@@ -4,14 +4,7 @@ import catchAsync from "../../utils/catchAsync";
 import sendError from "../../utils/sendError";
 import sendResponse from "../../utils/sendResponse";
 
-import {
-  createUser,
-  getUserList,
-  registerUserService,
-  updateUserById,
-  userDelete,
-  verifyOTPService,
-} from "./user.service";
+import { UserService } from "./user.service";
 
 import { OTPModel, UserModel } from "./user.model";
 
@@ -46,28 +39,21 @@ import { sendPushNotification } from "../notifications/pushNotification/pushNoti
 import { IUserPayload } from "../../middlewares/roleGuard";
 import { validateUserLockStatus } from "../../middlewares/lock";
 
-export const registerUser = catchAsync(async (req: Request, res: Response) => {
-  const { name, email, password, fcmToken } = req.body;
-  // Validate that the role is provided; if not, throw an error.
+const registerUser = catchAsync(async (req: Request, res: Response) => {
+  const { name, email, password, fcmToken, role } = req.body;
+  // Validate that the role is provided and valid (already handled by zod, but double-check for safety)
   // Call the service to register the user, which returns an OTP.
-  const { otp } = await registerUserService(name, email, password);
-  // Generate a token for the registration process.
+  const { otp } = await UserService.registerUserService(name, email, password);
   const token = generateRegisterToken({ email });
-  // Immediately send a response back to the client.
-  // This reduces the API response time.
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "OTP sent to your email. Please verify to continue registration.",
     data: { token: token },
   });
-
-  // Offload the remaining operations to a background asynchronous block.
   (async () => {
     try {
-      // Send the OTP email in the background.
       await sendOTPEmailRegister(name, email, otp);
-      // Hash the provided password.
       const hashedPassword = await hashPassword(password);
       let image: any = {
         path: "",
@@ -81,13 +67,14 @@ export const registerUser = catchAsync(async (req: Request, res: Response) => {
           publicFileURL: publicFileURL,
         };
       }
-      // Create a new user account with the hashed password and other details.
-      const { createdUser } = await createUser({
+      // Pass role to createUser
+      const createdUser: any = await UserService.createUser({
         name,
         email,
         image,
         hashedPassword,
         fcmToken,
+        role,
       });
 
       // Calculate OTP expiration (60 seconds from now)
@@ -127,11 +114,6 @@ export const registerUser = catchAsync(async (req: Request, res: Response) => {
             body: `Hi ${name}, 🎉 Welcome to Bienvenue! Your registration is complete. We're excited to have you onboard!`,
           };
 
-          // Customize message for a manager role.
-          if (createdUser.role === "manager") {
-            pushMessage.body = `💼 Welcome to Bienvenue, ${name}! 🎉 Your registration is complete! Our team will review your account shortly for approval as a manager. Thank you for your patience! ✅`;
-          }
-
           // Send the push notification.
           await sendPushNotification(fcmToken, pushMessage);
         } catch (pushError) {
@@ -147,7 +129,7 @@ export const registerUser = catchAsync(async (req: Request, res: Response) => {
   })();
 });
 
-export const resendOTP = catchAsync(async (req: Request, res: Response) => {
+const resendOTP = catchAsync(async (req: Request, res: Response) => {
   let decoded;
   try {
     decoded = verifyToken(req.headers.authorization as string);
@@ -175,11 +157,7 @@ export const resendOTP = catchAsync(async (req: Request, res: Response) => {
     data: null,
   });
   const otp = generateOTP();
-  // await setCache(email, otp, 300);
 
-  // await resendOTPEmail(email, newOTP);
-  // const user = await UserModel.findOne({ email });
-  // Attempt to send the email
   resendOTPEmail(email, otp)
     .then((res) => {
       console.log("Email Send");
@@ -190,7 +168,7 @@ export const resendOTP = catchAsync(async (req: Request, res: Response) => {
   await saveOTP(email, otp); // Save the new OTP with expiration
 });
 
-export const loginUser = catchAsync(async (req: Request, res: Response) => {
+const loginUser = catchAsync(async (req: Request, res: Response) => {
   const { email, password, role, fcmToken } = req.body;
 
   const user = await findUserByEmail(email);
@@ -261,56 +239,54 @@ export const loginUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 //cool down timer
-export const forgotPassword = catchAsync(
-  async (req: Request, res: Response) => {
-    const { email } = req.body;
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+  const { email } = req.body;
 
-    if (!email) {
-      throw new ApiError(400, "Please provide an email.");
-    }
-    // await delCache(email);
-    const user = await findUserByEmail(email);
-    if (!user) {
-      throw new ApiError(404, "This account does not exist.");
-    }
-
-    const now = new Date();
-    // Check if there's a pending OTP request and if the 2-minute cooldown has passed
-    const otpRecord = await OTPModel.findOne({ email });
-    if (otpRecord && otpRecord.expiresAt > now) {
-      const remainingTime = Math.floor(
-        (otpRecord.expiresAt.getTime() - now.getTime()) / 1000
-      );
-
-      throw new ApiError(
-        403,
-        `You can't request another OTP before ${remainingTime} seconds.`
-      );
-    }
-    const token = generateRegisterToken({ email });
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "OTP sent to your email. Please check!",
-      data: { token },
-    });
-    const otp = generateOTP();
-    // await setCache(email, otp, 300);
-    await sendResetOTPEmail(email, otp, user.name as string);
-    await saveOTP(email, otp); // Save OTP with expiration
+  if (!email) {
+    throw new ApiError(400, "Please provide an email.");
   }
-);
+  // await delCache(email);
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new ApiError(404, "This account does not exist.");
+  }
 
-export const resetPassword = catchAsync(async (req: Request, res: Response) => {
+  const now = new Date();
+  // Check if there's a pending OTP request and if the 2-minute cooldown has passed
+  const otpRecord = await OTPModel.findOne({ email });
+  if (otpRecord && otpRecord.expiresAt > now) {
+    const remainingTime = Math.floor(
+      (otpRecord.expiresAt.getTime() - now.getTime()) / 1000
+    );
+
+    throw new ApiError(
+      403,
+      `You can't request another OTP before ${remainingTime} seconds.`
+    );
+  }
+  const token = generateRegisterToken({ email });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "OTP sent to your email. Please check!",
+    data: { token },
+  });
+  const otp = generateOTP();
+  // await setCache(email, otp, 300);
+  await sendResetOTPEmail(email, otp, user.name as string);
+  await saveOTP(email, otp); // Save OTP with expiration
+});
+
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
   let decoded: any;
   try {
     decoded = verifyToken(req.headers.authorization);
   } catch (error: any) {
     return sendError(res, error);
   }
-  if (!decoded.role) {
-    throw new ApiError(401, "Invalid token. Please try again.");
-  }
+  // if (!decoded.role) {
+  //   throw new ApiError(401, "Invalid token. Please try again.");
+  // }
   const email = decoded.email as string;
 
   const { password } = req.body;
@@ -338,11 +314,11 @@ export const resetPassword = catchAsync(async (req: Request, res: Response) => {
   await user.save();
 });
 
-export const verifyOTP = catchAsync(async (req: Request, res: Response) => {
+const verifyOTP = catchAsync(async (req: Request, res: Response) => {
   const { otp } = req.body;
 
   try {
-    const { token, name, email, phone } = await verifyOTPService(
+    const { token, name, email, phone } = await UserService.verifyOTPService(
       otp,
       req.headers.authorization as string
     );
@@ -365,7 +341,7 @@ export const verifyOTP = catchAsync(async (req: Request, res: Response) => {
   }
 });
 
-export const updateUser = catchAsync(async (req: Request, res: Response) => {
+const updateUser = catchAsync(async (req: Request, res: Response) => {
   try {
     const { name, ageRange, address } = req.body;
 
@@ -391,7 +367,7 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
       };
     }
 
-    const updatedUser = await updateUserById(userId, updateData);
+    const updatedUser = await UserService.updateUserById(userId, updateData);
     const responseData = {
       _id: updatedUser?._id,
       name: updatedUser?.name,
@@ -416,7 +392,7 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
   }
 });
 
-export const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
+const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
   try {
     let decoded = req.user as IUserPayload;
 
@@ -457,7 +433,7 @@ export const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
   }
 });
 
-export const deleteUser = catchAsync(async (req: Request, res: Response) => {
+const deleteUser = catchAsync(async (req: Request, res: Response) => {
   try {
     const id = req.query?.id as string;
     const deleteableuser = await findUserById(id);
@@ -477,7 +453,7 @@ export const deleteUser = catchAsync(async (req: Request, res: Response) => {
       );
     }
 
-    await userDelete(id, deleteableuser.email);
+    await UserService.userDelete(id, deleteableuser.email);
     return sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -492,108 +468,101 @@ export const deleteUser = catchAsync(async (req: Request, res: Response) => {
   }
 });
 
-export const changePassword = catchAsync(
-  async (req: Request, res: Response) => {
-    try {
-      const { oldPassword, newPassword } = req.body;
-      if (!oldPassword || !newPassword) {
-        throw new Error("Please provide both old password and new password.");
-      }
-
-      let decoded = req.user as IUserPayload;
-      const email = decoded.email as string;
-      const user = await findUserByEmail(email);
-
-      if (!user) {
-        throw new Error("User not found.");
-      }
-
-      const isMatch = await argon2.verify(user.password as string, oldPassword);
-      if (!isMatch) {
-        throw new ApiError(
-          httpStatus.UNAUTHORIZED,
-          "Old password is incorrect."
-        );
-      }
-
-      const hashedNewPassword = await argon2.hash(newPassword);
-      user.password = hashedNewPassword;
-      await user.save();
-
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "You have successfully changed your password.",
-        data: null,
-      });
-    } catch (error: any) {
-      throw new ApiError(
-        error.statusCode || 500,
-        error.message || "Failed to change password."
-      );
+const changePassword = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      throw new Error("Please provide both old password and new password.");
     }
+
+    let decoded = req.user as IUserPayload;
+    const email = decoded.email as string;
+    const user = await findUserByEmail(email);
+
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    const isMatch = await argon2.verify(user.password as string, oldPassword);
+    if (!isMatch) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, "Old password is incorrect.");
+    }
+
+    const hashedNewPassword = await argon2.hash(newPassword);
+    user.password = hashedNewPassword;
+    await user.save();
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "You have successfully changed your password.",
+      data: null,
+    });
+  } catch (error: any) {
+    throw new ApiError(
+      error.statusCode || 500,
+      error.message || "Failed to change password."
+    );
   }
-);
+});
 
-export const adminloginUser = catchAsync(
-  async (req: Request, res: Response) => {
-    try {
-      const { email, password } = req.body;
+const adminloginUser = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
 
-      const user = await findUserByEmail(email);
-      if (!user) {
-        throw new ApiError(404, "This account does not exist.");
-      }
+    const user = await findUserByEmail(email);
+    if (!user) {
+      throw new ApiError(404, "This account does not exist.");
+    }
 
-      if (user.role !== "admin") {
-        throw new ApiError(403, "Only admins can login.");
-      }
+    if (user.role !== "admin") {
+      throw new ApiError(403, "Only admins can login.");
+    }
 
-      // Check password validity
-      const isPasswordValid = await argon2.verify(
-        user.password as string,
-        password
-      );
-      if (!isPasswordValid) {
-        throw new ApiError(401, "Wrong password!");
-      }
+    // Check password validity
+    const isPasswordValid = await argon2.verify(
+      user.password as string,
+      password
+    );
+    if (!isPasswordValid) {
+      throw new ApiError(401, "Wrong password!");
+    }
 
-      const userId = user._id as string;
+    const userId = user._id as string;
 
-      // Generate new token for the logged-in user
-      const token = generateToken({
-        id: userId,
-        email: user.email,
-        role: user.role,
-      });
+    // Generate new token for the logged-in user
+    const token = generateToken({
+      id: userId,
+      email: user.email,
+      role: user.role,
+    });
 
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Login complete!",
-        data: {
-          user: {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            image: user?.image?.publicFileURL,
-          },
-          token,
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Login complete!",
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          image: user?.image?.publicFileURL,
         },
-      });
-    } catch (error: any) {
-      throw new ApiError(
-        error.statusCode || 500,
-        error.message || "An error occurred during admin login."
-      );
-    }
+        token,
+      },
+    });
+  } catch (error: any) {
+    throw new ApiError(
+      error.statusCode || 500,
+      error.message || "An error occurred during admin login."
+    );
   }
-);
+});
 
 //admin dashboard----------------------------------------------------------------------------------------
 
-export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   let decoded;
   try {
     decoded = verifyToken(req.headers.authorization);
@@ -618,7 +587,7 @@ export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
 
   try {
     // Get the user list based on pagination and filters
-    const { users, totalUsers, totalPages } = await getUserList(
+    const { users, pagination } = await UserService.getUserList(
       skip,
       limit,
       date as string,
@@ -628,17 +597,17 @@ export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
       requestStatus as string
     );
 
-    // Pagination logic for prevPage and nextPage
-    const prevPage = page > 1 ? page - 1 : null;
-    const nextPage = page < totalPages ? page + 1 : null;
-
-    // If no users found
     if (users.length === 0) {
       return sendResponse(res, {
         statusCode: httpStatus.NO_CONTENT,
         success: true,
         message: "No user found based on your search.",
         data: [],
+        pagination: {
+          ...pagination,
+          prevPage: pagination.prevPage ?? 0,
+          nextPage: pagination.nextPage ?? 0,
+        },
       });
     }
 
@@ -677,12 +646,9 @@ export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
       message: "User list retrieved successfully",
       data: responseData,
       pagination: {
-        totalPage: totalPages,
-        currentPage: page,
-        prevPage: prevPage ?? 1,
-        nextPage: nextPage ?? 1,
-        limit,
-        totalItem: totalUsers,
+        ...pagination,
+        prevPage: pagination.prevPage ?? 0,
+        nextPage: pagination.nextPage ?? 0,
       },
     });
   } catch (error: any) {
@@ -693,3 +659,20 @@ export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
     );
   }
 });
+
+const UserController = {
+  registerUser,
+  resendOTP,
+  loginUser,
+  forgotPassword,
+  resetPassword,
+  verifyOTP,
+  updateUser,
+  getSelfInfo,
+  deleteUser,
+  changePassword,
+  adminloginUser,
+  getAllUsers,
+};
+
+export { UserController };

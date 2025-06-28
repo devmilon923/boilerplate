@@ -1,5 +1,6 @@
 import BookMark from "./BookMark.model";
-import mongoose, {  Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
+import paginationBuilder from "../../utils/paginationBuilder";
 
 export const createBookMarkService = async (
   userId: Types.ObjectId,
@@ -29,33 +30,28 @@ export const getBookMarkList = async (
   limit: number
 ) => {
   const skip = (page - 1) * limit;
-
   // Build the match criteria for active bookmarks of the logged-in user.
   const matchCriteria: any = {
     userId: new mongoose.Types.ObjectId(userId),
     isDeleted: false,
     isBooked: true,
   };
-
   // Execute the aggregation pipeline.
   const bookmarks = await BookMark.find({
     userId: userId,
-  }).select("-isDeleted");
+  })
+    .select("-isDeleted")
+    .skip(skip)
+    .limit(limit);
   const totalBookmarks = await BookMark.countDocuments(matchCriteria);
-  const totalPages = Math.ceil(totalBookmarks / limit);
-  const prevPage = page > 1 ? page - 1 : 1;
-  const nextPage = page < totalPages ? page + 1 : totalPages;
-
+  const pagination = paginationBuilder({
+    totalData: totalBookmarks,
+    currentPage: page,
+    limit,
+  });
   // Return response in the desired format.
   return {
     data: bookmarks,
-    // pagination: {
-    //   totalPage: totalPages,
-    //   currentPage: page,
-    //   prevPage,
-    //   nextPage,
-    //   limit,
-    //   totalItem: totalBookmarks,
-    // },
+    pagination,
   };
 };

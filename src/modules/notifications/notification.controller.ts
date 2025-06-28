@@ -10,88 +10,73 @@ import catchAsync from "../../utils/catchAsync";
 import sendError from "../../utils/sendError";
 import sendResponse from "../../utils/sendResponse";
 import { verifyToken } from "../../utils/JwtToken";
-import { INotification } from "./notification.interface";
 import ApiError from "../../errors/ApiError";
 import { sendPushNotificationToMultiple } from "./pushNotification/pushNotification.controller";
-import { IUser } from "../user/user.interface";
+import paginationBuilder from "../../utils/paginationBuilder";
 
-type ReadFields = "isManagerRead" | "isUserRead" | "isAdminRead";
-
-type MsgFields = "adminMsg" | "managerMsg" | "userMsg";
+// --- Role-based notification config ---
+const roleNotificationConfig = {
+  admin: {
+    queryKey: "adminId",
+    selectFields: "adminMsg isAdminRead createdAt updatedAt",
+    readField: "isAdminRead",
+    msgField: "adminMsg",
+  },
+  carer: {
+    queryKey: "carerId",
+    selectFields: "carerMsg isCarerRead createdAt updatedAt",
+    readField: "isCarerRead",
+    msgField: "carerMsg",
+  },
+  nurse: {
+    queryKey: "nurseId",
+    selectFields: "nurseMsg isNurseRead createdAt updatedAt",
+    readField: "isNurseRead",
+    msgField: "nurseMsg",
+  },
+  cleaner: {
+    queryKey: "cleanerId",
+    selectFields: "cleanerMsg isCleanerRead createdAt updatedAt",
+    readField: "isCleanerRead",
+    msgField: "cleanerMsg",
+  },
+} as const;
 
 export const getMyNotification = catchAsync(
   async (req: Request, res: Response) => {
-    let decoded: any;
-    try {
-      decoded = verifyToken(req.headers.authorization as string);
-    } catch (error: any) {
+    // Use req.auth for id/role, and fetch user from DB for full IUser
+    const auth = (req as any).auth;
+    if (!auth) throw new ApiError(401, "Unauthorized");
+    const user = await findUserById(auth.id);
+    if (!user) throw new ApiError(404, "User not found.");
+
+    // Role config
+    const config =
+      roleNotificationConfig[user.role as keyof typeof roleNotificationConfig];
+    if (!config) {
       return sendError(res, {
-        statusCode: error.statusCode || httpStatus.UNAUTHORIZED,
-        message: error.message || "Unauthorized.",
+        statusCode: httpStatus.BAD_REQUEST,
+        message: "Invalid user role.",
       });
     }
+    const query = { [config.queryKey]: user._id };
+    const selectFields = config.selectFields;
+    const readField = config.readField;
+    const msgField = config.msgField;
 
-    const userId = decoded.id as string;
-
-    // Find the user by userId
-    const user = await findUserById(userId); // Assuming you have a function to find user
-    if (!user) {
-      throw new ApiError(404, "User not found.");
-    }
-
-    // Pagination logic
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = parseInt(req.query.limit as string, 10) || 20;
-    const skip = (page - 1) * limit;
-
-    // Define query parameters based on user role
-    let query = {};
-    let selectFields = "";
-    let readField: ReadFields = "isUserRead"; // default
-    let msgField: MsgFields = "userMsg"; // default
-
-    switch (user.role) {
-      case "manager":
-        query = { managerId: user._id };
-        selectFields = "managerMsg isManagerRead createdAt updatedAt";
-        readField = "isManagerRead";
-        msgField = "managerMsg";
-        break;
-      case "user":
-        query = { userId: user._id };
-        selectFields = "userMsg isUserRead createdAt updatedAt";
-        readField = "isUserRead";
-        msgField = "userMsg";
-        break;
-      case "admin":
-        query = { adminId: user._id };
-        selectFields = "adminMsg isAdminRead createdAt updatedAt";
-        readField = "isAdminRead";
-        msgField = "adminMsg";
-        break;
-      default:
-        return sendError(res, {
-          statusCode: httpStatus.BAD_REQUEST,
-          message: "Invalid user role.",
-        });
-    }
-
-    // Fetch notifications based on role
+    // Fetch notifications
     const notifications = await NotificationModel.find(query)
       .select(selectFields)
       .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
       .exec();
-
-    // Count total notifications based on role
     const totalNotifications =
       await NotificationModel.countDocuments(query).exec();
-
-    // Calculate total pages
-    const totalPages = Math.ceil(totalNotifications / limit);
-
-    // Format the notifications
+    // Use paginationBuilder for pagination info
+    const pagination = paginationBuilder({
+      totalData: totalNotifications,
+      currentPage: 1,
+      limit: notifications.length,
+    });
     const formattedNotifications = notifications.map((notification) => ({
       _id: notification._id,
       isReadable: notification[readField] as boolean,
@@ -99,24 +84,14 @@ export const getMyNotification = catchAsync(
       createdAt: notification.createdAt,
       updatedAt: notification.updatedAt,
     }));
-
-    // Check if notifications are empty
     if (formattedNotifications.length === 0) {
       return sendResponse(res, {
         statusCode: httpStatus.NO_CONTENT,
         success: true,
         message: "You have no notifications.",
-        data: {
-          notifications: [],
-        },
+        data: { notifications: [] },
       });
     }
-
-    // Pagination logic for prevPage and nextPage
-    const prevPage = page > 1 ? page - 1 : null;
-    const nextPage = page < totalPages ? page + 1 : null;
-
-    // Send response with pagination details
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -124,17 +99,11 @@ export const getMyNotification = catchAsync(
       data: {
         notifications: formattedNotifications,
         pagination: {
-          totalPages,
-          currentPage: page,
-          prevPage,
-          nextPage,
-          limit,
-          totalNotifications,
+          ...pagination,
         },
       },
     });
-
-    // Mark notifications as read based on role
+    // Mark notifications as read
     await NotificationModel.updateMany(
       { ...query, [readField]: false },
       { $set: { [readField]: true } }
@@ -144,94 +113,35 @@ export const getMyNotification = catchAsync(
 
 export const getUnreadBadgeCount = catchAsync(
   async (req: Request, res: Response) => {
-    // Extract and verify the token
-    let decoded;
-    try {
-      decoded = verifyToken(req.headers.authorization);
-    } catch (error: any) {
-      return sendError(res, error);
-    }
+    const auth = (req as any).auth;
+    if (!auth) throw new ApiError(401, "Unauthorized");
+    const user = await findUserById(auth.id);
+    if (!user) throw new ApiError(404, "User not found");
 
-    const userId = decoded.id as string;
-
-    // Find the user by userId
-    const user = await findUserById(userId);
-    if (!user) {
-      throw new ApiError(404, "User not found");
-    }
-
-    let unreadCount: number = 0;
-    let rawNotifications: INotification[] = [];
-
-    if (user.role === "manager") {
-      unreadCount = await NotificationModel.countDocuments({
-        managerId: user._id,
-        isManagerRead: false,
-      }).exec();
-
-      rawNotifications = await NotificationModel.find({
-        managerId: user._id,
-        managerMsg: { $exists: true },
-      })
-        .sort({ createdAt: -1 })
-        .limit(3)
-        .select("managerMsg createdAt")
-        .exec();
-    } else if (user.role === "user") {
-      unreadCount = await NotificationModel.countDocuments({
-        userId: user._id,
-        isUserRead: false,
-      }).exec();
-
-      rawNotifications = await NotificationModel.find({
-        userId: user._id,
-        userMsg: { $exists: true },
-      })
-        .sort({ createdAt: -1 })
-        .limit(3)
-        .select("userMsg createdAt")
-        .exec();
-    } else if (user.role === "admin") {
-      unreadCount = await NotificationModel.countDocuments({
-        adminId: user._id,
-        isAdminRead: false,
-      }).exec();
-
-      rawNotifications = await NotificationModel.find({
-        adminId: user._id,
-        adminMsg: { $exists: true },
-      })
-        .sort({ createdAt: -1 })
-        .limit(3)
-        .select("adminMsg createdAt")
-        .exec();
-    } else {
+    const config =
+      roleNotificationConfig[user.role as keyof typeof roleNotificationConfig];
+    if (!config) {
       return sendError(res, {
         statusCode: httpStatus.BAD_REQUEST,
         message: "Invalid user role.",
       });
     }
-
-    // Transform notifications to have a unified 'msg' field
-    let latestNotifications: { msg: string; createdAt: Date }[] = [];
-
-    if (user.role === "manager") {
-      latestNotifications = rawNotifications.map((notification) => ({
-        msg: notification.managerMsg || "",
-        createdAt: notification.createdAt,
-      }));
-    } else if (user.role === "user") {
-      latestNotifications = rawNotifications.map((notification) => ({
-        msg: notification.userMsg || "",
-        createdAt: notification.createdAt,
-      }));
-    } else if (user.role === "admin") {
-      latestNotifications = rawNotifications.map((notification) => ({
-        msg: notification.adminMsg || "",
-        createdAt: notification.createdAt,
-      }));
-    }
-
+    const unreadCount = await NotificationModel.countDocuments({
+      [config.queryKey]: user._id,
+      [config.readField]: false,
+    }).exec();
+    const rawNotifications = await NotificationModel.find({
+      [config.queryKey]: user._id,
+      [config.msgField]: { $exists: true },
+    })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .select(`${config.msgField} createdAt`)
+      .exec();
+    const latestNotifications = rawNotifications.map((notification) => ({
+      msg: notification[config.msgField] || "",
+      createdAt: notification.createdAt,
+    }));
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
