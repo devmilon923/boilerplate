@@ -22,12 +22,9 @@ export const guardRole = (roles: TRole | TRole[]) => {
         token,
         process.env.JWT_SECRET_KEY as string
       ) as IUserPayload;
-
       // Attach the decoded payload to the request object
-      (req as any).auth = decoded;
-
+      (req as any).user = decoded;
       const userRole = decoded.role;
-
       // Check if the user has one of the allowed roles
       if (
         (Array.isArray(roles) && roles.includes(userRole as TRole)) ||

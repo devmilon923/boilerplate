@@ -14,26 +14,7 @@ const UserSchema = new Schema<IUser>(
       required: false,
       default: null,
     },
-    ageRange: { type: String, trim: true, default: null },
     address: { type: String, trim: true, default: null },
-    user_mood: {
-      type: String,
-      enum: MoodEnum,
-      default: null,
-      required: false,
-    },
-    jurnals: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "Jurnals",
-      required: false,
-      default: [],
-    },
-    chat_history_with_ai: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "aichats",
-      required: false,
-      default: [],
-    },
     profile_status: {
       type: Boolean,
       required: true,
@@ -44,12 +25,7 @@ const UserSchema = new Schema<IUser>(
       required: false,
       default: null,
     },
-    conections: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "friends",
-      required: false,
-      default: [],
-    },
+
     image: {
       type: {
         publicFileURL: { type: String, trim: true },
@@ -70,7 +46,7 @@ const UserSchema = new Schema<IUser>(
 
     isVerified: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     fcmToken: { type: String, trim: true },
     isRequest: {

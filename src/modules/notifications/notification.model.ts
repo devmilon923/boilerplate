@@ -1,23 +1,18 @@
 import mongoose, { Schema } from "mongoose";
 import { INotification } from "./notification.interface";
 
-const NotificationSchema: Schema = new Schema(
+const NotificationSchema = new Schema<INotification>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User" },
-    managerId: { type: Schema.Types.ObjectId, ref: "User" },
-    adminId: [{ type: Schema.Types.ObjectId, ref: "User" }],
-
-    adminMsg: { type: String },
-    managerMsg: { type: String },
-    userMsg: { type: String },
-
-    isManagerRead: { type: Boolean, default: false },
-    isUserRead: { type: Boolean, default: false },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    adminId: [{ type: Schema.Types.ObjectId, ref: "User", required: true }],
+    adminMsgTittle: { type: String, required: true },
+    adminMsg: { type: String, required: true },
     isAdminRead: { type: Boolean, default: false },
-
-    unreadCount: { type: Number, required: true, default: 0 },
+    userMsgTittle: { type: String, required: true },
+    userMsg: { type: String, required: true },
+    isUserRead: { type: Boolean, default: false },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 export const NotificationModel =

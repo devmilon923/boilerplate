@@ -24,7 +24,7 @@ export const sendOTPEmailRegister = async (
   const emailContent = `
        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f2f9fc; padding: 30px 20px; border-radius: 10px;">
       <h1 style="text-align: center; color:#111111 font-family: 'Times New Roman', Times, serif; font-size: 32px; letter-spacing: 2px;">
-       Bienvenue
+       ${process.env.AppName}
       </h1>
       <div style="background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
         <h2 style="color: #111111; text-align: center; font-size: 24px; font-weight: bold;">Hello ${name}!</h2>
@@ -36,7 +36,7 @@ export const sendOTPEmailRegister = async (
         
         <p style="text-align: center; color: #e10600; font-weight: bold; font-size: 14px; margin-top: 20px;">This OTP will expire in 3 minutes.</p>
         <p style="font-size: 16px; color: #333; text-align: center; line-height: 1.6; margin-top: 20px;">If you did not request this, no further action is required.</p>
-        <p style="font-size: 16px; color: #333; text-align: center; margin-top: 20px;">Regards,<br>Bienvenue</p>
+        <p style="font-size: 16px; color: #333; text-align: center; margin-top: 20px;">Regards,<br>${process.env.AppName}</p>
       </div>
       
       <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">If you're having trouble copying the OTP, please try again.</p>
@@ -74,7 +74,7 @@ export const sendOTPEmailVerification = async (
   const emailContent = `
        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f2f9fc; padding: 30px 20px; border-radius: 10px;">
       <h1 style="text-align: center; color:#111111; font-family: 'Times New Roman', Times, serif; font-size: 32px; letter-spacing: 2px;">
-       Bienvenue
+       ${process.env.AppName}
       </h1>
       <div style="background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
         <h2 style="color: #111111; text-align: center; font-size: 24px; font-weight: bold;">Hello ${name}!</h2>
@@ -86,7 +86,7 @@ export const sendOTPEmailVerification = async (
         
         <p style="text-align: center; color: #e10600; font-weight: bold; font-size: 14px; margin-top: 20px;">This OTP will expire in 3 minutes.</p>
         <p style="font-size: 16px; color: #333; text-align: center; line-height: 1.6; margin-top: 20px;">If you did not request this, please ignore this email.</p>
-        <p style="font-size: 16px; color: #333; text-align: center; margin-top: 20px;">Regards,<br>Bienvenue</p>
+        <p style="font-size: 16px; color: #333; text-align: center; margin-top: 20px;">Regards,<br>${process.env.AppName}</p>
       </div>
       
       <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">If you're having trouble copying the OTP, please try again.</p>
@@ -139,7 +139,7 @@ export const sendOTPEmail = async (
       
       <p style="text-align: center; color: #e10600; font-weight: bold; font-size: 14px; margin-top: 20px;">This OTP will expire in 3 minutes.</p>
       <p style="font-size: 16px; color: #333; text-align: center; line-height: 1.6; margin-top: 20px;">If you did not request this, no further action is required.</p>
-      <p style="font-size: 16px; color: #333; text-align: center; margin-top: 20px;">Regards,<br>Bienvenue</p>
+      <p style="font-size: 16px; color: #333; text-align: center; margin-top: 20px;">Regards,<br>${process.env.AppName}</p>
     </div>
     
     <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">If you're having trouble copying the OTP, please try again.</p>
@@ -180,7 +180,7 @@ export const resendOTPEmail = async (
     const emailContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f2f9fc; padding: 30px 20px; border-radius: 10px;">
       <h1 style="text-align: center; color: #1a3d6d; font-family: 'Times New Roman', Times, serif; font-size: 32px; letter-spacing: 2px;">
-       Bienvenue
+       ${process.env.AppName}
       </h1>
       <div style="background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
         <h2 style="color:#111111; text-align: center; font-size: 24px; font-weight: bold;">Hello!</h2>
@@ -199,7 +199,7 @@ export const resendOTPEmail = async (
           If you did not request this, please ignore this email.
         </p>
         <p style="font-size: 16px; color: #333; text-align: center; margin-top: 20px;">
-          Regards,<br>Bienvenue
+          Regards,<br>${process.env.AppName}
         </p>
       </div>
       
@@ -240,7 +240,7 @@ export const sendResetOTPEmail = async (
     const emailContent = `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f2f9fc; padding: 30px 20px; border-radius: 10px;">
    <h1 style="text-align: center; color: #111111; font-family: 'Times New Roman', Times, serif; font-size: 32px; letter-spacing: 2px;">
-    Bienvenue
+    ${process.env.AppName}
   </h1>
   
   <div style="background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
@@ -293,7 +293,7 @@ export const sendManagerRequest = async (
     const emailContent = `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f2f9fc; padding: 30px 20px; border-radius: 10px;">
   <h1 style="text-align: center; color: #111111; font-family: 'Times New Roman', Times, serif; font-size: 32px; letter-spacing: 2px;">
-    Bienvenue
+    ${process.env.AppName}
   </h1>
   
   <div style="background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
@@ -306,7 +306,7 @@ export const sendManagerRequest = async (
       Please review the request and take the appropriate action.
     </p>
     <p style="font-size: 16px; color: #333; text-align: center; margin-top: 20px;">
-      Regards,<br>Bienvenue
+      Regards,<br>${process.env.AppName}
     </p>
   </div>
   

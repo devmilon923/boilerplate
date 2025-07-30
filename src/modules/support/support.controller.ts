@@ -48,7 +48,7 @@ export const needSupport = catchAsync(async (req: Request, res: Response) => {
   const name = user.name;
   const email = user.email;
   const msg = supportMsg;
-  const createdCategory = await createSupportService(name, email, msg);
+  await createSupportService(name, email, msg);
 
   // Success response
   sendResponse(res, {
@@ -63,14 +63,15 @@ export const needSupport = catchAsync(async (req: Request, res: Response) => {
   //--------------------------> emit function <-------------------------
   // Define notification messages
   const userMsg =
-    "📬 Thank you for reaching out! 💡 Our support team has received your message and will get back to you shortly. 🚀";
+    "💡 Our support team has received your message and will get back to you shortly. 🚀";
 
-  const primaryMsg = `🔔 **Support Request Alert!** 🌟 A user has requested support:👤Name:${name} ✉️ Email: ${email} `;
+  const primaryMsg = `🌟 A user has requested support:👤Name:${name} ✉️ Email: ${email} `;
 
   await emitNotification({
     userId: userObjectId, // Pass userId as required by your emitNotification function
     userMsg: userMsg,
-
+    adminMsgTittle: "🔔 **Support Request Alert!**",
+    userMsgTittle: "📬 Thank you for reaching out! ",
     adminMsg: primaryMsg,
   });
   //--------------------------> emit function <-------------------------

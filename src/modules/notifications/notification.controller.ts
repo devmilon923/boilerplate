@@ -1,63 +1,42 @@
 import httpStatus from "http-status";
-
-import jwt from "jsonwebtoken";
-
 import { NextFunction, Request, Response } from "express";
-
 import { findUserById } from "../user/user.utils";
 import { NotificationModel } from "./notification.model";
 import catchAsync from "../../utils/catchAsync";
 import sendError from "../../utils/sendError";
 import sendResponse from "../../utils/sendResponse";
-import { verifyToken } from "../../utils/JwtToken";
 import ApiError from "../../errors/ApiError";
 import { sendPushNotificationToMultiple } from "./pushNotification/pushNotification.controller";
 import paginationBuilder from "../../utils/paginationBuilder";
+import { IUserPayload } from "../../middlewares/roleGuard";
 
 // --- Role-based notification config ---
 const roleNotificationConfig = {
   admin: {
     queryKey: "adminId",
-    selectFields: "adminMsg isAdminRead createdAt updatedAt",
+    selectFields: "adminMsgTittle adminMsg createdAt updatedAt",
     readField: "isAdminRead",
     msgField: "adminMsg",
   },
-  carer: {
-    queryKey: "carerId",
-    selectFields: "carerMsg isCarerRead createdAt updatedAt",
-    readField: "isCarerRead",
-    msgField: "carerMsg",
+  user: {
+    queryKey: "userId",
+    selectFields: "userMsg userMsgTittle createdAt updatedAt",
+    readField: "isUserRead",
+    msgField: "userMsg",
   },
-  nurse: {
-    queryKey: "nurseId",
-    selectFields: "nurseMsg isNurseRead createdAt updatedAt",
-    readField: "isNurseRead",
-    msgField: "nurseMsg",
-  },
-  cleaner: {
-    queryKey: "cleanerId",
-    selectFields: "cleanerMsg isCleanerRead createdAt updatedAt",
-    readField: "isCleanerRead",
-    msgField: "cleanerMsg",
-  },
-} as const;
+} as any;
 
 export const getMyNotification = catchAsync(
   async (req: Request, res: Response) => {
-    // Use req.auth for id/role, and fetch user from DB for full IUser
-    const auth = (req as any).auth;
-    if (!auth) throw new ApiError(401, "Unauthorized");
+    const auth = req.user as IUserPayload;
+    if (!auth) throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized");
     const user = await findUserById(auth.id);
-    if (!user) throw new ApiError(404, "User not found.");
-
+    if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found.");
     // Role config
     const config =
       roleNotificationConfig[user.role as keyof typeof roleNotificationConfig];
     if (!config) {
-      return sendError(res, {
-        statusCode: httpStatus.BAD_REQUEST,
-        message: "Invalid user role.",
-      });
+      throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid user role.");
     }
     const query = { [config.queryKey]: user._id };
     const selectFields = config.selectFields;
@@ -113,11 +92,9 @@ export const getMyNotification = catchAsync(
 
 export const getUnreadBadgeCount = catchAsync(
   async (req: Request, res: Response) => {
-    const auth = (req as any).auth;
-    if (!auth) throw new ApiError(401, "Unauthorized");
+    const auth = req.user as IUserPayload;
     const user = await findUserById(auth.id);
     if (!user) throw new ApiError(404, "User not found");
-
     const config =
       roleNotificationConfig[user.role as keyof typeof roleNotificationConfig];
     if (!config) {

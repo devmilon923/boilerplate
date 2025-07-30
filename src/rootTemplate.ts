@@ -3,7 +3,7 @@ export const template = `
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Bienvenue</title>
+    <title>Welcome to ${process.env.AppName}</title>
     <style>
       * {
         margin: 0;
@@ -56,9 +56,9 @@ export const template = `
         width: 100%;
         background-color: #ffffff; /* White background */
         color: #333;
-        padding: 150px 20px 80px 20px;
+        padding: 150px 20px 150px 20px;
         text-align: center;
-        margin-top: 70px; /* Account for navbar height */
+  
       }
 
       .hero h1 {
@@ -177,35 +177,10 @@ export const template = `
 
     <!-- Hero Section -->
     <section class="hero">
-      <h1>Welcome to Bienvenue</h1>
-      <h2>Discover the best bars and restaurants, share your experiences, and let the good times roll!</h2>
+      <h1>Welcome to ${process.env.AppName}</h1>
+      <h2>Discover the best pepole and new thing, share your experiences, and let the good times roll!</h2>
       <button class="cta-button">Explore Now</button>
     </section>
-
-    <!-- Features Section -->
-    <div class="features">
-      <h3>Why Choose Bienvenue?</h3>
-      <p>Bienvenue is your ultimate guide to the best nightlife experiences. Here's what makes us stand out:</p>
-      <div class="grid">
-        <div class="grid-item">
-          <h4>Discover Hotspots</h4>
-          <p>Find the trendiest bars and restaurants in your area.</p>
-        </div>
-        <div class="grid-item">
-          <h4>Share Feedback</h4>
-          <p>Rate and review your favorite places to help others.</p>
-        </div>
-        <div class="grid-item">
-          <h4>Exclusive Offers</h4>
-          <p>Get access to special deals and events.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <footer>
-      <p>&copy; 2025 Bienvenue. All rights reserved. </p>
-    </footer>
   </body>
 </html>
 `;

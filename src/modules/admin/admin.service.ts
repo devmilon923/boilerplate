@@ -1,10 +1,5 @@
 import mongoose, { Types } from "mongoose";
 import { UserModel } from "../user/user.model";
-import ApiError from "../../errors/ApiError";
-import httpStatus from "http-status";
-import moment from "moment";
-import { ArticalsModel } from "../articals/articals.model";
-import { FAQModel } from "../faq/faq.model";
 
 // admin.service.ts
 const updateStatus = async (userId: Types.ObjectId, days: number) => {
@@ -50,56 +45,7 @@ function getCurrentWeekDates() {
   return { startOfWeek, endOfWeek };
 }
 
-const createArtical = async (body: Object, file: any) => {
-  const result = await ArticalsModel.create({
-    ...body,
-    image: {
-      publicFileURL: `public\\images\\${file?.filename}`, // This is a bug
-      path: `/images/${file?.filename}`,
-    },
-  });
-  return result;
-};
-const updateArtical = async (
-  body: Object,
-  file: any,
-  articalId: Types.ObjectId
-) => {
-  let query = {};
-  if (file) {
-    query = {
-      ...body,
-      image: {
-        publicFileURL: `public\\images\\${file?.filename}`, // This is a bug
-        path: `/images/${file?.filename}`,
-      },
-    };
-  } else {
-    query = {
-      ...body,
-    };
-  }
-
-  const result = await ArticalsModel.findByIdAndUpdate(articalId, query, {
-    new: true,
-  });
-  return result;
-};
-const createFAQ = async (body: Object) => {
-  const result = await FAQModel.create(body);
-  return result;
-};
-const updateFAQ = async (body: Object, faqId: Types.ObjectId) => {
-  const result = await FAQModel.findByIdAndUpdate(faqId, body, {
-    new: true,
-  });
-  return result;
-};
 export const AdminService = {
   getUsers,
   updateStatus,
-  createFAQ,
-  updateFAQ,
-  updateArtical,
-  createArtical,
 };

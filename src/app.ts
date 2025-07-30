@@ -1,14 +1,11 @@
-import path from "path";
 // Import the 'express' module
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import notFound from "./middlewares/notFound";
-
 import router from "./routes";
 import { logger, logHttpRequests } from "./logger/logger";
-
 import { template } from "./rootTemplate";
 
 // Create an Express application

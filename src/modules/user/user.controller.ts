@@ -41,19 +41,12 @@ import { validateUserLockStatus } from "../../middlewares/lock";
 
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const { name, email, password, fcmToken, role } = req.body;
-  // Validate that the role is provided and valid (already handled by zod, but double-check for safety)
   // Call the service to register the user, which returns an OTP.
   const { otp } = await UserService.registerUserService(name, email, password);
   const token = generateRegisterToken({ email });
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "OTP sent to your email. Please verify to continue registration.",
-    data: { token: token },
-  });
+
   (async () => {
     try {
-      await sendOTPEmailRegister(name, email, otp);
       const hashedPassword = await hashPassword(password);
       let image: any = {
         path: "",
@@ -76,6 +69,14 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
         fcmToken,
         role,
       });
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message:
+          "OTP sent to your email. Please verify to continue registration.",
+        data: { token: token },
+      });
+      await sendOTPEmailRegister(name, email, otp);
 
       // Calculate OTP expiration (60 seconds from now)
       const now = new Date();
@@ -92,14 +93,14 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
 
       // --------> Emit notification <----------------
       // Convert the created user's id to a mongoose ObjectId type.
-      const userObjectId = new mongoose.Types.ObjectId(
-        createdUser._id as string
-      );
+      const user: any = createdUser?.createdUser;
       // Create a payload for notifications with messages for both the user and the admin.
       const notificationPayload: any = {
-        userId: userObjectId,
-        userMsg: `💫 Welcome to Bienvenue, ${createdUser.name}! 🎉 Your registration is complete, and we're thrilled to have you onboard. Start exploring and enjoy the experience! 🚀`,
-        adminMsg: `📢 New user registration! 🎉 A new user, ${createdUser.name}, has successfully registered with Bienvenue. Please welcome them aboard and ensure everything is set up for their journey.`,
+        userId: user?._id,
+        userMsgTittle: "🎉 Registation Completed",
+        adminMsgTittle: "📢 New User Regisation",
+        userMsg: `💫 Welcome to ${process.env.AppName}, ${user?.name}! 🎉 Your registration is complete, and we're thrilled to have you onboard. Start exploring and enjoy the experience! 🚀`,
+        adminMsg: `New user registration! 🎉 A new user, ${user?.name}, has successfully registered with ${process.env.AppName}. Please welcome them aboard and ensure everything is set up for their journey.`,
       };
 
       // Emit the notification.
@@ -111,7 +112,7 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
           // Define the base push message.
           const pushMessage = {
             title: "🎉 Welcome to Sweepy!",
-            body: `Hi ${name}, 🎉 Welcome to Bienvenue! Your registration is complete. We're excited to have you onboard!`,
+            body: `Hi ${name}, 🎉 Welcome to ${process.env.AppName}! Your registration is complete. We're excited to have you onboard!`,
           };
 
           // Send the push notification.
@@ -122,9 +123,15 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
         }
       }
       // --------> End push notification <----------------
-    } catch (backgroundError) {
+    } catch (backgroundError: any) {
       // Log errors from background tasks so they don't affect the already sent response.
-      console.error("Error in background tasks:", backgroundError);
+      console.error("Error in background tasks:", backgroundError?.message);
+      return sendResponse(res, {
+        statusCode: backgroundError?.statusCode,
+        success: false,
+        // message: backgroundError?.message,
+        data: backgroundError?.message,
+      });
     }
   })();
 });
@@ -372,7 +379,6 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
       _id: updatedUser?._id,
       name: updatedUser?.name,
       email: updatedUser?.email,
-      ageRange: updatedUser?.ageRange,
       address: updatedUser?.address,
       image: updatedUser?.image?.publicFileURL || "",
     };
@@ -395,9 +401,8 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
 const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
   try {
     let decoded = req.user as IUserPayload;
-
     const userId = decoded.id as string;
-
+    console.log(userId);
     // Find the user in DB
     const user = await findUserById(userId);
     if (!user) {
@@ -410,10 +415,9 @@ const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      address: user?.address,
-      ageRange: user?.ageRange,
+      address: user?.address || "",
       image: user?.image?.publicFileURL || "",
-      profile_status: user?.profile_status,
+      profile_status: user?.profile_status ? true : false,
     };
 
     // Send final response

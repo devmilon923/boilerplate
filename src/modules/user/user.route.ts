@@ -15,25 +15,25 @@ router.post("/verify-otp", UserController.verifyOTP);
 router.post("/resend-otp", UserController.resendOTP);
 router.post(
   "/change-password",
-  guardRole(["admin", "carer", "nurse", "cleaner"]),
+  guardRole(["admin", "user"]),
   UserController.changePassword
 );
 router.patch(
   "/profile-update",
-  guardRole(["admin", "carer", "nurse", "cleaner"]),
+  guardRole(["admin", "user"]),
   upload.single("image"),
   UserController.updateUser
 );
 
 router.get(
   "/my-profile",
-  guardRole(["admin", "carer", "nurse", "cleaner"]),
+  guardRole(["admin", "user"]),
   UserController.getSelfInfo
 );
 
 router.delete(
   "/account-delete",
-  guardRole(["admin", "carer", "nurse", "cleaner"]),
+  guardRole(["admin", "user"]),
   UserController.deleteUser
 );
 

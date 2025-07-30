@@ -131,17 +131,17 @@ export const initSocketIO = async (server: HttpServer): Promise<void> => {
 export { io };
 
 export const emitNotification = async ({
-  managerId,
   userId,
+  adminMsgTittle,
+  userMsgTittle,
   userMsg,
   adminMsg,
-  managerMsg,
 }: {
-  managerId?: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
+  userMsgTittle: string;
+  adminMsgTittle: string;
   userMsg?: string;
   adminMsg?: string;
-  managerMsg?: string;
 }): Promise<void> => {
   if (!io) {
     throw new Error("Socket.IO is not initialized");
@@ -175,24 +175,13 @@ export const emitNotification = async ({
     });
   }
 
-  // Notify the specific manager
-  if (managerMsg && managerId) {
-    const managerSocket = connectedUsers.get(managerId.toString());
-    if (managerSocket) {
-      io.to(managerSocket.socketID).emit(`notification`, {
-        managerId,
-        message: managerMsg,
-      });
-    }
-  }
-
   // Save notification to the database
   await NotificationModel.create<INotification>({
     userId,
     userMsg,
-    managerId: managerId,
     adminId: adminIds,
     adminMsg,
-    managerMsg,
+    adminMsgTittle,
+    userMsgTittle,
   });
 };

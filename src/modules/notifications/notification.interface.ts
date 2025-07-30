@@ -2,17 +2,14 @@ import { Document, Types } from "mongoose";
 
 // Define the INotification type
 export type INotification = {
-  userId?: Types.ObjectId;
-  managerId?: Types.ObjectId;
-  adminId?: Types.ObjectId[]; // Optional array of ObjectId
-  adminMsg?: string;
-  managerMsg?: string;
-  userMsg?: string;
-  isManagerRead?: boolean;
-  isUserRead?: boolean;
-  isAdminRead?: boolean;
-  unreadCount: number;
-  createdAt: Date;
+  userId: Types.ObjectId;
+  adminId: Types.ObjectId[]; // Optional array of ObjectId
+  adminMsgTittle: string;
+  adminMsg: string;
+  userMsgTittle: string;
+  userMsg: string;
+  isAdminRead: Boolean;
+  isUserRead: Boolean;
 } & Document;
 
 //--------> for push notifications <----------------------
