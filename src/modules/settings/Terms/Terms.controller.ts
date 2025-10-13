@@ -1,4 +1,3 @@
-import jwt from "jsonwebtoken";
 import httpStatus from "http-status";
 import sendError from "../../../utils/sendError";
 import {
@@ -11,14 +10,10 @@ import sendResponse from "../../../utils/sendResponse";
 import catchAsync from "../../../utils/catchAsync";
 
 import sanitizeHtml from "sanitize-html";
-import { JWT_SECRET_KEY } from "../../../config";
 import { Request, Response } from "express";
 import { findUserById } from "../../user/user.utils";
 import { verifyToken } from "../../../utils/JwtToken";
 import ApiError from "../../../errors/ApiError";
-import { sanitizeOptions } from "../../../utils/SanitizeOptions";
-
-
 
 export const createTerms = catchAsync(async (req: Request, res: Response) => {
   let decoded;
@@ -32,20 +27,12 @@ export const createTerms = catchAsync(async (req: Request, res: Response) => {
   // Find the user by userId
   const user = await findUserById(userId);
   if (!user) {
-    // return sendError(res, {
-    //   statusCode: httpStatus.NOT_FOUND,
-    //   message: "User not found.",
-    // });
     throw new ApiError(httpStatus.NOT_FOUND, "User not found.");
   }
 
   const { description } = req.body;
-  const sanitizedContent = sanitizeHtml(description, sanitizeOptions);
+  const sanitizedContent = sanitizeHtml(description);
   if (!description) {
-    // return sendError(res, {
-    //   statusCode: httpStatus.BAD_REQUEST,
-    //   message: "Description is required!",
-    // });
     throw new ApiError(httpStatus.BAD_REQUEST, "Description is required!");
   }
 
@@ -83,33 +70,16 @@ export const updateTerms = catchAsync(async (req: Request, res: Response) => {
   // Find the user by userId
   const user = await findUserById(userId);
   if (!user) {
-    // return sendError(res, {
-    //   statusCode: httpStatus.NOT_FOUND,
-    //   message: "User not found.",
-    // });
     throw new ApiError(httpStatus.NOT_FOUND, "User not found.");
   }
 
-  // Check if the user is an admin
-  // if (user.role === "primary" || user.role === "secondary") {
-  //   return sendError(res, {
-  //     statusCode: httpStatus.FORBIDDEN,
-  //     message: "Only admins can update terms.",
-  //   });
-  // }
-
-  // Sanitize the description field
   const { description } = req.body;
 
   if (!description) {
-    // return sendError(res, {
-    //   statusCode: httpStatus.BAD_REQUEST,
-    //   message: "Description is required.",
-    // });
     throw new ApiError(httpStatus.BAD_REQUEST, "Description is required.");
   }
 
-  const sanitizedDescription = sanitizeHtml(description, sanitizeOptions);
+  const sanitizedDescription = sanitizeHtml(description);
 
   // Assume you're updating the terms based on the sanitized description
   const result = await updateTermsInDB(sanitizedDescription);

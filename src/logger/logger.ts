@@ -2,7 +2,7 @@ import { createLogger, format, transports } from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 import path from "path";
 import fs from "fs";
-import express, { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 
 import { blue, green, red, yellowBright, magenta, yellow } from "colorette";
 
@@ -18,7 +18,7 @@ export const logger = createLogger({
     format.timestamp({ format: "DD-MM-YYYY HH:mm:ss" }),
     format.errors({ stack: true }),
     format.splat(),
-    format.json()
+    format.json(),
   ),
   transports: [
     new DailyRotateFile({
@@ -42,7 +42,7 @@ export const logger = createLogger({
 export const logHttpRequests = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const startTime = Date.now();
 

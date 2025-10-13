@@ -1,6 +1,5 @@
 import multer, { FileFilterCallback } from "multer";
 import path from "path";
-import { Express } from "express";
 import { Request } from "express";
 import createHttpError from "http-errors";
 import { max_file_size, UPLOAD_FOLDER } from "../config";
@@ -12,20 +11,15 @@ const ALLOWED_FILE_TYPES = [
   ".jpg",
   ".jpeg",
   ".png",
-  // ".xlsx",
-  // ".xls",
-  // ".csv",
   ".pdf",
-  ".doc",
-  ".docx",
-  // ".mp3",
-  // ".wav",
-  // ".ogg",
-  // ".mp4",
-  // ".avi",
-  // ".mov",
-  // ".mkv",
-  // ".webm",
+  ".mp3",
+  ".wav",
+  ".ogg",
+  ".mp4",
+  ".avi",
+  ".mov",
+  ".mkv",
+  ".webm",
   ".svg",
 ];
 
@@ -33,7 +27,7 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     // Determine the folder based on file type
     const extName = path.extname(file.originalname).toLowerCase();
-    let folder = UPLOAD_PATH; // Default to images folder
+    let folder = UPLOAD_PATH;
 
     // Check if the file is an audio or video type
     if (
@@ -56,9 +50,8 @@ const storage = multer.diskStorage({
   filename: function (
     req: Request,
     file: Express.Multer.File,
-    cb: (error: Error | null, filename: string) => void
+    cb: (error: Error | null, filename: string) => void,
   ) {
-    const extName = path.extname(file.originalname);
     const fileName = file.originalname.replace(/\s+/g, "_");
     // const fileName = `${Date.now()}-${file.originalname.replace(extName, "")}${extName}`;
     cb(null, fileName);
@@ -68,7 +61,7 @@ const storage = multer.diskStorage({
 const fileFilter = (
   req: Request,
   file: Express.Multer.File,
-  cb: FileFilterCallback
+  cb: FileFilterCallback,
 ) => {
   const extName = path.extname(file.originalname).toLocaleLowerCase();
   const isAllowedFileType = ALLOWED_FILE_TYPES.includes(extName);

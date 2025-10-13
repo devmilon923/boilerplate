@@ -6,52 +6,7 @@ import mongoose from "mongoose";
 import handleValidationError from "../errors/handleValidationError";
 import handlerCastError from "../errors/handleCastError";
 import handlerDuplicateError from "../errors/handleDuplicateError";
-
-import { NODE_ENV } from "../config";
 import ApiError from "../errors/ApiError";
-
-// const globalErrorHandler: ErrorRequestHandler = (
-//   error: any,
-//   req: any,
-//   res: any,
-//   next: any,
-// ) => {
-//   let errorInfo: IErrorResponse = {
-//     success: false,
-//     statusCode: 500,
-//     // statusCode: 400,
-//     message: "Invalid request",
-//      errorMessage: "",
-//     errorDetails: {
-//       path: null,
-//       value: null,
-//     },
-//   };
-//   if (error instanceof ZodError) {
-//     errorInfo = handlerZodError(error);
-//   } else if (error instanceof mongoose.Error.ValidationError) {
-//     errorInfo = handleValidationError(error);
-//   } else if (error instanceof mongoose.Error.CastError) {
-//     errorInfo = handlerCastError(error);
-//   } else if (error?.code === 11000) {
-//     errorInfo = handlerDuplicateError(error);
-//   } else if (error instanceof Error) {
-//     errorInfo.errorMessage = error.message;
-//   } else if (error instanceof ApiError) {
-//     console.log(errorInfo,"------->")
-//     errorInfo.statusCode = error.statusCode;
-//     errorInfo.errorMessage = error.message;
-//   }
-// console.log(errorInfo,"------global error")
-//   return res.status(errorInfo.statusCode).json({
-//     success: errorInfo.success,
-//     statusCode: errorInfo.statusCode,
-//     message: errorInfo.message,
-//     errorMessage: errorInfo.errorMessage,
-//     errorDetails: errorInfo.errorDetails,
-//     stack: NODE_ENV === "development" ? error.stack : null,
-//   });
-// };
 
 const errorTypeMap: Record<number, string> = {
   400: "Bad Request",
@@ -96,8 +51,6 @@ const errorTypeMap: Record<number, string> = {
   510: "Not Extended",
   511: "Network Authentication Required",
 };
-
-
 
 const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
   let errorInfo: IErrorResponse = {

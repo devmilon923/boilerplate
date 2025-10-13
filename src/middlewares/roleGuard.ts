@@ -20,7 +20,7 @@ export const guardRole = (roles: TRole | TRole[]) => {
       // Decode token and cast it to IUserPayload
       const decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET_KEY as string
+        process.env.JWT_SECRET_KEY as string,
       ) as IUserPayload;
       // Attach the decoded payload to the request object
       (req as any).user = decoded;
@@ -35,7 +35,7 @@ export const guardRole = (roles: TRole | TRole[]) => {
 
       throw new ApiError(
         403,
-        "You are not authorized to access this resource."
+        "You are not authorized to access this resource.",
       );
     } catch (error) {
       throw new ApiError(498, "Session Expired");

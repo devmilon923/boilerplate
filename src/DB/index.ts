@@ -4,18 +4,12 @@ import { TermsModel } from "../modules/settings/Terms/Terms.model";
 import { UserModel } from "../modules/user/user.model";
 import { hashPassword } from "../modules/user/user.utils";
 
-// const admin = {
-//   name: "Mr Wilson",
-//   email: "wilson@gmail.com",
-//   password: "1qazxsw2",
-//   role: "admin",
-//   isDeleted: false,
-// };
-const admin2 = {
+const admin = {
   name: "admin",
   email: "admin@gmail.com",
   password: "1qazxsw2",
   role: "admin",
+  isVerified: true,
   isDeleted: false,
 };
 
@@ -30,7 +24,7 @@ const dummyTerms = {
 };
 
 export const seedSuperAdmin = async () => {
-  const admins = [admin2];
+  const admins = [admin];
 
   for (const adminData of admins) {
     const isAdminExists = await UserModel.findOne({ email: adminData.email });

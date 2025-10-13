@@ -29,12 +29,13 @@ const roleNotificationConfig = {
 export const getMyNotification = catchAsync(
   async (req: Request, res: Response) => {
     const auth = req.user as IUserPayload;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const page = parseInt(req.query.page as string) || 1;
+    const skip = (page - 1) * limit;
     if (!auth) throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized");
     const user = await findUserById(auth.id);
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found.");
-    // Role config
-    const config =
-      roleNotificationConfig[user.role as keyof typeof roleNotificationConfig];
+    const config = roleNotificationConfig[user.role];
     if (!config) {
       throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid user role.");
     }
@@ -47,14 +48,15 @@ export const getMyNotification = catchAsync(
     const notifications = await NotificationModel.find(query)
       .select(selectFields)
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .exec();
     const totalNotifications =
       await NotificationModel.countDocuments(query).exec();
-    // Use paginationBuilder for pagination info
     const pagination = paginationBuilder({
       totalData: totalNotifications,
-      currentPage: 1,
-      limit: notifications.length,
+      currentPage: page,
+      limit,
     });
     const formattedNotifications = notifications.map((notification) => ({
       _id: notification._id,
@@ -65,10 +67,10 @@ export const getMyNotification = catchAsync(
     }));
     if (formattedNotifications.length === 0) {
       return sendResponse(res, {
-        statusCode: httpStatus.NO_CONTENT,
+        statusCode: httpStatus.NOT_FOUND,
         success: true,
         message: "You have no notifications.",
-        data: { notifications: [] },
+        data: { notifications: [], pagination },
       });
     }
     sendResponse(res, {
@@ -77,9 +79,7 @@ export const getMyNotification = catchAsync(
       message: "Here are your notifications.",
       data: {
         notifications: formattedNotifications,
-        pagination: {
-          ...pagination,
-        },
+        pagination,
       },
     });
     // Mark notifications as read

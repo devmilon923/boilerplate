@@ -12,7 +12,7 @@ const NotificationSchema = new Schema<INotification>(
     userMsg: { type: String, required: true },
     isUserRead: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const NotificationModel =

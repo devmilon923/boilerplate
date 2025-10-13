@@ -3,11 +3,8 @@ import { UserController } from "./user.controller";
 
 import upload from "../../multer/multer";
 import { guardRole } from "../../middlewares/roleGuard";
-
 const router = express.Router();
-
 router.post("/register", upload.single("image"), UserController.registerUser);
-
 router.post("/login", UserController.loginUser);
 router.post("/forget-password", UserController.forgotPassword);
 router.post("/reset-password", UserController.resetPassword);
@@ -16,30 +13,25 @@ router.post("/resend-otp", UserController.resendOTP);
 router.post(
   "/change-password",
   guardRole(["admin", "user"]),
-  UserController.changePassword
+  UserController.changePassword,
 );
 router.patch(
   "/profile-update",
   guardRole(["admin", "user"]),
   upload.single("image"),
-  UserController.updateUser
+  UserController.updateUser,
 );
 
 router.get(
   "/my-profile",
   guardRole(["admin", "user"]),
-  UserController.getSelfInfo
+  UserController.getSelfInfo,
 );
 
 router.delete(
   "/account-delete",
   guardRole(["admin", "user"]),
-  UserController.deleteUser
+  UserController.deleteUser,
 );
-
-//----------------------->Admin route <--------------------------------
-
-router.post("/admin-login", guardRole("admin"), UserController.adminloginUser);
-router.get("/user-list", guardRole("admin"), UserController.getAllUsers);
 
 export const UserRoutes = router;

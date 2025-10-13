@@ -3,7 +3,7 @@ import { Document, Types } from "mongoose";
 // Define the INotification type
 export type INotification = {
   userId: Types.ObjectId;
-  adminId: Types.ObjectId[]; // Optional array of ObjectId
+  adminId: Types.ObjectId[];
   adminMsgTittle: string;
   adminMsg: string;
   userMsgTittle: string;
@@ -12,7 +12,6 @@ export type INotification = {
   isUserRead: Boolean;
 } & Document;
 
-//--------> for push notifications <----------------------
 export type INotificationPayload = {
   title: string;
   body: string;

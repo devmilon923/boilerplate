@@ -33,7 +33,6 @@ import {
   generateToken,
   verifyToken,
 } from "../../utils/JwtToken";
-import mongoose from "mongoose";
 
 import { sendPushNotification } from "../notifications/pushNotification/pushNotification.controller";
 import { IUserPayload } from "../../middlewares/roleGuard";
@@ -41,27 +40,18 @@ import { validateUserLockStatus } from "../../middlewares/lock";
 
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const { name, email, password, fcmToken, role } = req.body;
-  // Call the service to register the user, which returns an OTP.
-  const { otp } = await UserService.registerUserService(name, email, password);
+  const { otp } = await UserService.registerUserService(name);
   const token = generateRegisterToken({ email });
 
   (async () => {
     try {
       const hashedPassword = await hashPassword(password);
-      let image: any = {
-        path: "",
-        publicFileURL: "",
-      };
+      let image = "";
       if (req.file) {
-        const imagePath = `public\\images\\${req.file.filename}`;
         const publicFileURL = `/images/${req.file.filename}`;
-        image = {
-          path: imagePath,
-          publicFileURL: publicFileURL,
-        };
+        image = publicFileURL;
       }
-      // Pass role to createUser
-      const createdUser: any = await UserService.createUser({
+      const createdUser = await UserService.createUser({
         name,
         email,
         image,
@@ -86,15 +76,13 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
         OTPModel.findOneAndUpdate(
           { email },
           { otp, expiresAt },
-          { upsert: true }
+          { upsert: true },
         ),
         saveOTP(email, otp),
       ]);
 
       // --------> Emit notification <----------------
-      // Convert the created user's id to a mongoose ObjectId type.
       const user: any = createdUser?.createdUser;
-      // Create a payload for notifications with messages for both the user and the admin.
       const notificationPayload: any = {
         userId: user?._id,
         userMsgTittle: "🎉 Registation Completed",
@@ -102,11 +90,7 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
         userMsg: `💫 Welcome to ${process.env.AppName}, ${user?.name}! 🎉 Your registration is complete, and we're thrilled to have you onboard. Start exploring and enjoy the experience! 🚀`,
         adminMsg: `New user registration! 🎉 A new user, ${user?.name}, has successfully registered with ${process.env.AppName}. Please welcome them aboard and ensure everything is set up for their journey.`,
       };
-
-      // Emit the notification.
       await emitNotification(notificationPayload);
-      // --------> End Emit notification <----------------
-      // --------> Send push notification via FCM (if fcmToken is provided) <----------------
       if (fcmToken) {
         try {
           // Define the base push message.
@@ -114,22 +98,17 @@ const registerUser = catchAsync(async (req: Request, res: Response) => {
             title: "🎉 Welcome to Sweepy!",
             body: `Hi ${name}, 🎉 Welcome to ${process.env.AppName}! Your registration is complete. We're excited to have you onboard!`,
           };
-
-          // Send the push notification.
           await sendPushNotification(fcmToken, pushMessage);
         } catch (pushError) {
           // Log any push notification errors without affecting the client response.
           console.error("Error sending push notification:", pushError);
         }
       }
-      // --------> End push notification <----------------
     } catch (backgroundError: any) {
-      // Log errors from background tasks so they don't affect the already sent response.
       console.error("Error in background tasks:", backgroundError?.message);
       return sendResponse(res, {
         statusCode: backgroundError?.statusCode,
         success: false,
-        // message: backgroundError?.message,
         data: backgroundError?.message,
       });
     }
@@ -149,12 +128,12 @@ const resendOTP = catchAsync(async (req: Request, res: Response) => {
 
   if (otpRecord && otpRecord.expiresAt > now) {
     const remainingTime = Math.floor(
-      (otpRecord.expiresAt.getTime() - now.getTime()) / 1000
+      (otpRecord.expiresAt.getTime() - now.getTime()) / 1000,
     );
 
     throw new ApiError(
       httpStatus.FORBIDDEN,
-      `You can't request another OTP before ${remainingTime} seconds.`
+      `You can't request another OTP before ${remainingTime} seconds.`,
     );
   }
   sendResponse(res, {
@@ -201,6 +180,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
       success: false,
       message: "We've sent an OTP to your email to verify your profile.",
       data: {
+        isVerified: user.isVerified ? true : false,
         role: user.role,
         token,
       },
@@ -218,7 +198,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   }
   const isPasswordValid = await argon2.verify(
     user.password as string,
-    password
+    password,
   );
   if (!isPasswordValid) {
     throw new ApiError(401, "Wrong password!");
@@ -233,19 +213,19 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
         _id: user._id,
         name: user?.name,
         email: user?.email,
-        image: user?.image?.publicFileURL || "",
+        image: user?.image || "",
         role: user?.role,
-        profile_status: user?.profile_status,
       },
+      isVerified: user.isVerified ? true : false,
       token,
     },
   });
-
-  user.fcmToken = fcmToken;
-  await user.save();
+  if (fcmToken?.trim()) {
+    user.fcmToken = fcmToken;
+    await user.save();
+  }
 });
 
-//cool down timer
 const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.body;
 
@@ -263,12 +243,12 @@ const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   const otpRecord = await OTPModel.findOne({ email });
   if (otpRecord && otpRecord.expiresAt > now) {
     const remainingTime = Math.floor(
-      (otpRecord.expiresAt.getTime() - now.getTime()) / 1000
+      (otpRecord.expiresAt.getTime() - now.getTime()) / 1000,
     );
 
     throw new ApiError(
       403,
-      `You can't request another OTP before ${remainingTime} seconds.`
+      `You can't request another OTP before ${remainingTime} seconds.`,
     );
   }
   const token = generateRegisterToken({ email });
@@ -313,7 +293,7 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   if (!user) {
     throw new ApiError(
       404,
-      "User not found. Are you attempting something sneaky?"
+      "User not found. Are you attempting something sneaky?",
     );
   }
   const newPassword = await hashPassword(password);
@@ -327,7 +307,7 @@ const verifyOTP = catchAsync(async (req: Request, res: Response) => {
   try {
     const { token, name, email, phone } = await UserService.verifyOTPService(
       otp,
-      req.headers.authorization as string
+      req.headers.authorization as string,
     );
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
@@ -380,7 +360,7 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
       name: updatedUser?.name,
       email: updatedUser?.email,
       address: updatedUser?.address,
-      image: updatedUser?.image?.publicFileURL || "",
+      image: updatedUser?.image || "",
     };
     if (updatedUser) {
       return sendResponse(res, {
@@ -393,7 +373,7 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
   } catch (error: any) {
     throw new ApiError(
       error.statusCode || 500,
-      error.message || "Unexpected error occurred while updating user."
+      error.message || "Unexpected error occurred while updating user.",
     );
   }
 });
@@ -402,7 +382,6 @@ const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
   try {
     let decoded = req.user as IUserPayload;
     const userId = decoded.id as string;
-    console.log(userId);
     // Find the user in DB
     const user = await findUserById(userId);
     if (!user) {
@@ -416,8 +395,8 @@ const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
       email: user.email,
       role: user.role,
       address: user?.address || "",
-      image: user?.image?.publicFileURL || "",
-      profile_status: user?.profile_status ? true : false,
+      image: user?.image || "",
+      isVerified: user?.isVerified,
     };
 
     // Send final response
@@ -432,7 +411,7 @@ const getSelfInfo = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(
       error.statusCode || 500,
       error.message ||
-        "Unexpected error occurred while retrieving user information."
+        "Unexpected error occurred while retrieving user information.",
     );
   }
 });
@@ -453,7 +432,7 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
     ) {
       throw new ApiError(
         403,
-        "You cannot delete this account. Please contact support"
+        "You cannot delete this account. Please contact support",
       );
     }
 
@@ -467,7 +446,7 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
   } catch (error: any) {
     throw new ApiError(
       error.statusCode || 500,
-      error.message || "Unexpected error occurred while deleting the user."
+      error.message || "Unexpected error occurred while deleting the user.",
     );
   }
 });
@@ -505,7 +484,7 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
   } catch (error: any) {
     throw new ApiError(
       error.statusCode || 500,
-      error.message || "Failed to change password."
+      error.message || "Failed to change password.",
     );
   }
 });
@@ -526,7 +505,7 @@ const adminloginUser = catchAsync(async (req: Request, res: Response) => {
     // Check password validity
     const isPasswordValid = await argon2.verify(
       user.password as string,
-      password
+      password,
     );
     if (!isPasswordValid) {
       throw new ApiError(401, "Wrong password!");
@@ -541,7 +520,7 @@ const adminloginUser = catchAsync(async (req: Request, res: Response) => {
       role: user.role,
     });
 
-    sendResponse(res, {
+    return sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: "Login complete!",
@@ -551,7 +530,7 @@ const adminloginUser = catchAsync(async (req: Request, res: Response) => {
           name: user.name,
           email: user.email,
           role: user.role,
-          image: user?.image?.publicFileURL,
+          image: user?.image || "",
         },
         token,
       },
@@ -559,7 +538,7 @@ const adminloginUser = catchAsync(async (req: Request, res: Response) => {
   } catch (error: any) {
     throw new ApiError(
       error.statusCode || 500,
-      error.message || "An error occurred during admin login."
+      error.message || "An error occurred during admin login.",
     );
   }
 });
@@ -598,7 +577,7 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
       name as string,
       email as string,
       role as string,
-      requestStatus as string
+      requestStatus as string,
     );
 
     if (users.length === 0) {
@@ -659,7 +638,7 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
     // Handle any errors during the user fetching or manager population
     throw new ApiError(
       error.statusCode || 500,
-      error.message || "Failed to retrieve users."
+      error.message || "Failed to retrieve users.",
     );
   }
 });

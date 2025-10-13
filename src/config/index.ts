@@ -28,5 +28,5 @@ export const FIREBASE_SERVICE_ACCOUNT_PATH =
   process.env.FIREBASE_SERVICE_ACCOUNT_PATH ||
   path.resolve(
     process.cwd(),
-    "src/config/vibez-84546-firebase-adminsdk-fbsvc-f1bab122b8.json"
+    "src/config/vibez-84546-firebase-adminsdk-fbsvc-f1bab122b8.json",
   );

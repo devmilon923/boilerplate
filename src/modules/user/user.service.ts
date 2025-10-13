@@ -1,27 +1,13 @@
 import { IUser } from "./user.interface";
-
 import { OTPModel, UserModel } from "./user.model";
-
 import ApiError from "../../errors/ApiError";
-
 import { findUserByEmail, generateOTP } from "./user.utils";
-
 import httpStatus from "http-status";
 import { generateToken, verifyToken } from "../../utils/JwtToken";
-
 import { TRole } from "../../config/role";
 import paginationBuilder from "../../utils/paginationBuilder";
 
-// Improved: Add JSDoc comments, better error logging, and minor optimizations for clarity and maintainability.
-
-/**
- * Registers a new user by email, name, and password. Handles OTP logic and prevents duplicate registration.
- */
-const registerUserService = async (
-  name: string,
-  email: string,
-  password: string
-) => {
+const registerUserService = async (email: string) => {
   const start = Date.now();
   // Check if user is already registered and get OTP record in parallel
   const [isUserRegistered, otpRecord] = await Promise.all([
@@ -31,18 +17,18 @@ const registerUserService = async (
   if (isUserRegistered) {
     throw new ApiError(
       httpStatus.CONFLICT,
-      "This account is already registered. Please log in or use a different account."
+      "This account is already registered. Please log in or use a different account.",
     );
   }
   // OTP handling logic
   const now = new Date();
   if (otpRecord && otpRecord.expiresAt > now) {
     const remainingTime = Math.floor(
-      (otpRecord.expiresAt.getTime() - now.getTime()) / 1000
+      (otpRecord.expiresAt.getTime() - now.getTime()) / 1000,
     );
     throw new ApiError(
       httpStatus.TOO_MANY_REQUESTS,
-      `Please wait ${remainingTime} seconds before requesting a new OTP.`
+      `Please wait ${remainingTime} seconds before requesting a new OTP.`,
     );
   }
   // Generate and save OTP
@@ -50,9 +36,6 @@ const registerUserService = async (
   return { otp };
 };
 
-/**
- * Creates a new user in the database.
- */
 const createUser = async ({
   name,
   email,
@@ -85,19 +68,13 @@ const createUser = async ({
   }
 };
 
-/**
- * Updates a user by ID.
- */
 const updateUserById = async (
   id: string,
-  updateData: Partial<IUser>
+  updateData: Partial<IUser>,
 ): Promise<IUser | null> => {
   return UserModel.findByIdAndUpdate(id, updateData, { new: true });
 };
 
-/**
- * Soft-deletes a user and anonymizes their email.
- */
 const userDelete = async (id: string, email: string): Promise<void> => {
   const baseDeletedEmail = `deleted-account-${email}`;
   let deletedEmail = baseDeletedEmail;
@@ -114,9 +91,6 @@ const userDelete = async (id: string, email: string): Promise<void> => {
   });
 };
 
-/**
- * Verifies OTP for forgot password flow and returns a new token if valid.
- */
 const verifyForgotPasswordOTPService = async (email: string, otp: string) => {
   const user = await findUserByEmail(email);
   if (!user) {
@@ -142,13 +116,10 @@ const verifyForgotPasswordOTPService = async (email: string, otp: string) => {
   return { token };
 };
 
-/**
- * Gets a paginated list of admin users.
- */
 const getAdminList = async (
   skip: number,
   limit: number,
-  name?: string
+  name?: string,
 ): Promise<{
   admins: IUser[];
   pagination: ReturnType<typeof paginationBuilder>;
@@ -189,9 +160,6 @@ const getAdminList = async (
   return { admins, pagination };
 };
 
-/**
- * Gets a paginated list of non-admin users with optional filters.
- */
 const getUserList = async (
   skip: number,
   limit: number,
@@ -199,7 +167,7 @@ const getUserList = async (
   name?: string,
   email?: string,
   role?: string,
-  requestStatus?: string
+  requestStatus?: string,
 ): Promise<{
   users: IUser[];
   pagination: ReturnType<typeof paginationBuilder>;
@@ -249,9 +217,6 @@ const getUserList = async (
   return { users, pagination };
 };
 
-/**
- * Verifies OTP for user registration and returns a new token if valid.
- */
 const verifyOTPService = async (otp: string, authorizationHeader: string) => {
   let decoded;
   try {

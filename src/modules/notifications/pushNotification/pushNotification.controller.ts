@@ -1,9 +1,5 @@
-// pushNotification.ts
 import admin from "firebase-admin";
-import path from "path";
-
 import { readFileSync } from "fs";
-
 import { INotificationPayload } from "../notification.interface";
 import ApiError from "../../../errors/ApiError";
 import { FIREBASE_SERVICE_ACCOUNT_PATH } from "../../../config";
@@ -12,7 +8,7 @@ import httpStatus from "http-status";
 // Read and parse the Firebase service account JSON file
 const serviceAccountBuffer = readFileSync(
   FIREBASE_SERVICE_ACCOUNT_PATH,
-  "utf8"
+  "utf8",
 );
 const serviceAccount = JSON.parse(serviceAccountBuffer);
 
@@ -24,7 +20,7 @@ if (!admin.apps.length) {
 
 export const sendPushNotification = async (
   fcmToken: string,
-  payload: INotificationPayload
+  payload: INotificationPayload,
 ): Promise<string> => {
   if (!fcmToken?.trim()) {
     throw new ApiError(httpStatus.NOT_FOUND, "No fcmtoken founded.");
@@ -49,7 +45,7 @@ export const sendPushNotification = async (
 // Fallback helper for sending notifications to multiple tokens
 export const sendPushNotificationToMultiple = async (
   tokens: string[],
-  payload: INotificationPayload
+  payload: INotificationPayload,
 ): Promise<admin.messaging.BatchResponse> => {
   try {
     // Filter out invalid tokens
@@ -73,7 +69,7 @@ export const sendPushNotificationToMultiple = async (
     const batchResponse = await admin.messaging().sendEachForMulticast(message);
 
     console.log(
-      `Notifications sent: ${batchResponse.successCount} successful, ${batchResponse.failureCount} failed`
+      `Notifications sent: ${batchResponse.successCount} successful, ${batchResponse.failureCount} failed`,
     );
 
     // Optional: Log individual errors

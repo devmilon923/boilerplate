@@ -1,4 +1,3 @@
-import jwt from "jsonwebtoken";
 import httpStatus from "http-status";
 import sendError from "../../../utils/sendError";
 
@@ -7,7 +6,6 @@ import { findUserById } from "../../user/user.utils";
 import catchAsync from "../../../utils/catchAsync";
 
 import sanitizeHtml from "sanitize-html";
-import { JWT_SECRET_KEY } from "../../../config";
 import { Request, Response } from "express";
 import {
   createAboutInDB,
@@ -15,9 +13,6 @@ import {
   updateAboutInDB,
 } from "./About.service";
 import { verifyToken } from "../../../utils/JwtToken";
-import { sanitizeOptions } from "../../../utils/SanitizeOptions";
-
-
 
 export const createAbout = catchAsync(async (req: Request, res: Response) => {
   let decoded;
@@ -38,7 +33,7 @@ export const createAbout = catchAsync(async (req: Request, res: Response) => {
   }
 
   const { description } = req.body;
-  const sanitizedContent = sanitizeHtml(description, sanitizeOptions);
+  const sanitizedContent = sanitizeHtml(description);
   if (!description) {
     return sendError(res, {
       statusCode: httpStatus.BAD_REQUEST,
@@ -86,7 +81,6 @@ export const updateAbout = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  // Sanitize the description field
   const { description } = req.body;
 
   if (!description) {
@@ -96,9 +90,7 @@ export const updateAbout = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  const sanitizedDescription = sanitizeHtml(description, sanitizeOptions);
-
-  // Assume you're updating the terms based on the sanitized description
+  const sanitizedDescription = sanitizeHtml(description);
   const result = await updateAboutInDB(sanitizedDescription);
 
   if (!result) {

@@ -15,11 +15,6 @@ const UserSchema = new Schema<IUser>(
       default: null,
     },
     address: { type: String, trim: true, default: null },
-    profile_status: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
     blockStatus: {
       type: Date,
       required: false,
@@ -27,15 +22,8 @@ const UserSchema = new Schema<IUser>(
     },
 
     image: {
-      type: {
-        publicFileURL: { type: String, trim: true },
-        path: { type: String, trim: true },
-      },
+      type: String,
       required: false,
-      default: {
-        publicFileURL: "",
-        path: "",
-      },
     },
     role: {
       type: String,
@@ -59,7 +47,7 @@ const UserSchema = new Schema<IUser>(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const UserModel =

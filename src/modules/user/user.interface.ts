@@ -7,11 +7,7 @@ export type IUser = {
   password: string;
   gender?: "male" | "female" | "other";
   address?: string;
-  profile_status?: Boolean;
-  image: {
-    publicFileURL: string;
-    path: string;
-  };
+  image: string;
   isVerified: boolean;
   blockStatus: Date | null;
   role: TRole;
