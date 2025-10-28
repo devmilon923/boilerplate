@@ -1,0 +1,30 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FIREBASE_SERVICE_ACCOUNT_PATH = exports.ONE_SIGNAL_REST_API_KEY = exports.ONE_SIGNAL_APP_ID = exports.REDIS_DB = exports.REDIS_PASSWORD = exports.REDIS_PORT = exports.REDIS_HOST = exports.NODE_ENV = exports.STRIPE_PUBLISH_KEY = exports.STRIPE_SECRET_KEY = exports.STRIPE_BASE_URL = exports.STRIPE_WEBHOOK_ENDPOINT_SECRET = exports.max_file_size = exports.UPLOAD_FOLDER = exports.Nodemailer_GMAIL_PASSWORD = exports.Nodemailer_GMAIL = exports.JWT_SECRET_KEY = exports.DATABASE_URL = exports.PORT = void 0;
+const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+dotenv_1.default.config({ path: path_1.default.join((process.cwd(), ".env")) });
+// export const PORT = 8085; //------> production;
+exports.PORT = 8083; //------> development;
+exports.DATABASE_URL = process.env.DATABASE_URL;
+exports.JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+exports.Nodemailer_GMAIL = process.env.Nodemailer_GMAIL;
+exports.Nodemailer_GMAIL_PASSWORD = process.env.Nodemailer_GMAIL_PASSWORD;
+exports.UPLOAD_FOLDER = process.env.UPLOAD_FOLDER;
+exports.max_file_size = 52428800; //-> 50MB;
+exports.STRIPE_WEBHOOK_ENDPOINT_SECRET = process.env.endpoint_secret;
+exports.STRIPE_BASE_URL = "https://grassrootz-asifur-rahman.sarv.live/";
+exports.STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+exports.STRIPE_PUBLISH_KEY = process.env.STRIPE_PUBLISH_KEY;
+exports.NODE_ENV = process.env.NODE_ENV;
+exports.REDIS_HOST = "localhost";
+exports.REDIS_PORT = 8002;
+exports.REDIS_PASSWORD = process.env.REDIS_PASSWORD;
+exports.REDIS_DB = 0;
+exports.ONE_SIGNAL_APP_ID = "b57562d8-42a1-4d60-9751-a4040b8b46ab";
+exports.ONE_SIGNAL_REST_API_KEY = "os_v2_app_wv2wfwccufgwbf2ruqcaxc2gvpe7vv4l7ciurammjxzugjq323ocs7td5se6ki3l7vzxevawu4prbmafqzpzhpl2za3u5zs6ihqfu2i";
+exports.FIREBASE_SERVICE_ACCOUNT_PATH = process.env.FIREBASE_SERVICE_ACCOUNT_PATH ||
+    path_1.default.resolve(process.cwd(), "src/config/vibez-84546-firebase-adminsdk-fbsvc-f1bab122b8.json");
