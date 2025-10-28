@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -22,7 +13,7 @@ const sanitize_html_1 = __importDefault(require("sanitize-html"));
 const user_utils_1 = require("../../user/user.utils");
 const JwtToken_1 = require("../../../utils/JwtToken");
 const ApiError_1 = __importDefault(require("../../../errors/ApiError"));
-exports.createTerms = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.createTerms = (0, catchAsync_1.default)(async (req, res) => {
     let decoded;
     try {
         decoded = (0, JwtToken_1.verifyToken)(req.headers.authorization);
@@ -32,7 +23,7 @@ exports.createTerms = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     }
     const userId = decoded.id; // Assuming the token contains the userId
     // Find the user by userId
-    const user = yield (0, user_utils_1.findUserById)(userId);
+    const user = await (0, user_utils_1.findUserById)(userId);
     if (!user) {
         throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "User not found.");
     }
@@ -41,16 +32,16 @@ exports.createTerms = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     if (!description) {
         throw new ApiError_1.default(http_status_1.default.BAD_REQUEST, "Description is required!");
     }
-    const result = yield (0, Terms_service_1.createTermsInDB)({ sanitizedContent });
+    const result = await (0, Terms_service_1.createTermsInDB)({ sanitizedContent });
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.CREATED,
         message: "Terms created successfully.",
         data: result,
     });
-}));
-exports.getAllTerms = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield (0, Terms_service_1.getAllTermsFromDB)();
+});
+exports.getAllTerms = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await (0, Terms_service_1.getAllTermsFromDB)();
     const responseData = result[0];
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -58,8 +49,8 @@ exports.getAllTerms = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
         message: "Terms retrieved successfully.",
         data: responseData,
     });
-}));
-exports.updateTerms = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.updateTerms = (0, catchAsync_1.default)(async (req, res) => {
     let decoded;
     try {
         decoded = (0, JwtToken_1.verifyToken)(req.headers.authorization);
@@ -69,7 +60,7 @@ exports.updateTerms = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     }
     const userId = decoded.id;
     // Find the user by userId
-    const user = yield (0, user_utils_1.findUserById)(userId);
+    const user = await (0, user_utils_1.findUserById)(userId);
     if (!user) {
         throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "User not found.");
     }
@@ -79,7 +70,7 @@ exports.updateTerms = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     }
     const sanitizedDescription = (0, sanitize_html_1.default)(description);
     // Assume you're updating the terms based on the sanitized description
-    const result = yield (0, Terms_service_1.updateTermsInDB)(sanitizedDescription);
+    const result = await (0, Terms_service_1.updateTermsInDB)(sanitizedDescription);
     if (!result) {
         // return sendError(res, {
         //   statusCode: httpStatus.INTERNAL_SERVER_ERROR,
@@ -93,4 +84,4 @@ exports.updateTerms = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
         message: "Terms updated successfully.",
         data: result,
     });
-}));
+});

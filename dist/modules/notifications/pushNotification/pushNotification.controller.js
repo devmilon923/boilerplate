@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -26,8 +17,8 @@ if (!firebase_admin_1.default.apps.length) {
         credential: firebase_admin_1.default.credential.cert(serviceAccount),
     });
 }
-const sendPushNotification = (fcmToken, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!(fcmToken === null || fcmToken === void 0 ? void 0 : fcmToken.trim())) {
+const sendPushNotification = async (fcmToken, payload) => {
+    if (!fcmToken?.trim()) {
         throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "No fcmtoken founded.");
     }
     const message = {
@@ -38,7 +29,7 @@ const sendPushNotification = (fcmToken, payload) => __awaiter(void 0, void 0, vo
         },
     };
     try {
-        const response = yield firebase_admin_1.default.messaging().send(message);
+        const response = await firebase_admin_1.default.messaging().send(message);
         console.log("Push notification sent successfully:", response);
         return response;
     }
@@ -46,10 +37,10 @@ const sendPushNotification = (fcmToken, payload) => __awaiter(void 0, void 0, vo
         console.error("Error sending push notification:", error);
         throw new ApiError_1.default(500, "Error sending push notification");
     }
-});
+};
 exports.sendPushNotification = sendPushNotification;
 // Fallback helper for sending notifications to multiple tokens
-const sendPushNotificationToMultiple = (tokens, payload) => __awaiter(void 0, void 0, void 0, function* () {
+const sendPushNotificationToMultiple = async (tokens, payload) => {
     try {
         // Filter out invalid tokens
         const validTokens = tokens.filter((token) => !!token);
@@ -66,7 +57,7 @@ const sendPushNotificationToMultiple = (tokens, payload) => __awaiter(void 0, vo
             },
         };
         // Send batch using Firebase optimized method
-        const batchResponse = yield firebase_admin_1.default.messaging().sendEachForMulticast(message);
+        const batchResponse = await firebase_admin_1.default.messaging().sendEachForMulticast(message);
         console.log(`Notifications sent: ${batchResponse.successCount} successful, ${batchResponse.failureCount} failed`);
         // Optional: Log individual errors
         // batchResponse.responses.forEach((resp, idx) => {
@@ -80,5 +71,5 @@ const sendPushNotificationToMultiple = (tokens, payload) => __awaiter(void 0, vo
         console.error("Error sending push notifications:", error);
         throw error;
     }
-});
+};
 exports.sendPushNotificationToMultiple = sendPushNotificationToMultiple;

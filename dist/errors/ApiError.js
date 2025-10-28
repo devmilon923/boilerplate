@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class ApiError extends Error {
+    statusCode;
+    isOperational;
+    errorDetails;
     constructor(statusCode, message, errorDetails, isOperational = true) {
         super(message);
         this.statusCode = statusCode;

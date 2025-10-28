@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -18,7 +9,7 @@ const config_1 = require("../../config");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const argon2_1 = __importDefault(require("argon2"));
 const ApiError_1 = __importDefault(require("../../errors/ApiError"));
-const sendOTPEmailRegister = (name, email, otp) => __awaiter(void 0, void 0, void 0, function* () {
+const sendOTPEmailRegister = async (name, email, otp) => {
     const transporter = nodemailer_1.default.createTransport({
         service: "gmail",
         secure: true,
@@ -56,15 +47,15 @@ const sendOTPEmailRegister = (name, email, otp) => __awaiter(void 0, void 0, voi
         html: emailContent,
     };
     try {
-        yield transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
     }
     catch (error) {
         console.error("Unexpected error:", error);
         throw new ApiError_1.default(500, "Unexpected error occurred during email sending.");
     }
-});
+};
 exports.sendOTPEmailRegister = sendOTPEmailRegister;
-const sendOTPEmailVerification = (name, email, otp) => __awaiter(void 0, void 0, void 0, function* () {
+const sendOTPEmailVerification = async (name, email, otp) => {
     const transporter = nodemailer_1.default.createTransport({
         service: "gmail",
         secure: true,
@@ -101,20 +92,20 @@ const sendOTPEmailVerification = (name, email, otp) => __awaiter(void 0, void 0,
         html: emailContent,
     };
     try {
-        yield transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
     }
     catch (error) {
         console.error("Unexpected error:", error);
         throw new ApiError_1.default(500, "Unexpected error occurred during email sending.");
     }
-});
+};
 exports.sendOTPEmailVerification = sendOTPEmailVerification;
-const getStoredOTP = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    const otpRecord = yield user_model_1.OTPModel.findOne({ email });
+const getStoredOTP = async (email) => {
+    const otpRecord = await user_model_1.OTPModel.findOne({ email });
     return otpRecord ? otpRecord.otp : null;
-});
+};
 exports.getStoredOTP = getStoredOTP;
-const sendOTPEmail = (email, otp) => __awaiter(void 0, void 0, void 0, function* () {
+const sendOTPEmail = async (email, otp) => {
     const transporter = nodemailer_1.default.createTransport({
         service: "gmail",
         secure: true,
@@ -153,15 +144,15 @@ const sendOTPEmail = (email, otp) => __awaiter(void 0, void 0, void 0, function*
         html: emailContent,
     };
     try {
-        yield transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
     }
     catch (error) {
         console.error("Unexpected error:", error);
         throw new ApiError_1.default(500, "Unexpected error occurred during email sending.");
     }
-});
+};
 exports.sendOTPEmail = sendOTPEmail;
-const resendOTPEmail = (email, otp) => __awaiter(void 0, void 0, void 0, function* () {
+const resendOTPEmail = async (email, otp) => {
     try {
         const transporter = nodemailer_1.default.createTransport({
             service: "gmail",
@@ -208,15 +199,15 @@ const resendOTPEmail = (email, otp) => __awaiter(void 0, void 0, void 0, functio
             subject: "Resend OTP ",
             html: emailContent,
         };
-        yield transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
     }
     catch (error) {
         console.error(`Error sending OTP email to ${email}:`, error);
         throw new ApiError_1.default(500, "Unexpected error occurred during email sending.");
     }
-});
+};
 exports.resendOTPEmail = resendOTPEmail;
-const sendResetOTPEmail = (email, otp, name) => __awaiter(void 0, void 0, void 0, function* () {
+const sendResetOTPEmail = async (email, otp, name) => {
     try {
         const transporter = nodemailer_1.default.createTransport({
             service: "gmail",
@@ -256,15 +247,15 @@ const sendResetOTPEmail = (email, otp, name) => __awaiter(void 0, void 0, void 0
             subject: "Reset Password OTP",
             html: emailContent,
         };
-        yield transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
     }
     catch (error) {
         console.error(`Error sending OTP email to ${email}:`, error);
         throw new ApiError_1.default(500, "Unexpected error occurred during email sending.");
     }
-});
+};
 exports.sendResetOTPEmail = sendResetOTPEmail;
-const sendManagerRequest = (emails, name, email) => __awaiter(void 0, void 0, void 0, function* () {
+const sendManagerRequest = async (emails, name, email) => {
     try {
         const transporter = nodemailer_1.default.createTransport({
             service: "gmail",
@@ -305,45 +296,45 @@ const sendManagerRequest = (emails, name, email) => __awaiter(void 0, void 0, vo
             subject: "New Manager Request Notification",
             html: emailContent,
         };
-        yield transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
     }
     catch (error) {
         console.error(`Error sending manager request email to ${emails}:`, error);
         throw new ApiError_1.default(500, "Unexpected error occurred during sending manager request email.");
     }
-});
+};
 exports.sendManagerRequest = sendManagerRequest;
-const verifyPassword = (inputPassword, storedPassword) => __awaiter(void 0, void 0, void 0, function* () {
+const verifyPassword = async (inputPassword, storedPassword) => {
     try {
-        return yield argon2_1.default.verify(storedPassword, inputPassword);
+        return await argon2_1.default.verify(storedPassword, inputPassword);
     }
     catch (error) {
         throw new Error("Password verification failed");
     }
-});
+};
 exports.verifyPassword = verifyPassword;
-const hashPassword = (password) => __awaiter(void 0, void 0, void 0, function* () {
+const hashPassword = async (password) => {
     try {
-        return yield argon2_1.default.hash(password);
+        return await argon2_1.default.hash(password);
     }
     catch (error) {
         throw new Error("Password hashing failed");
     }
-});
+};
 exports.hashPassword = hashPassword;
 const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 exports.generateOTP = generateOTP;
-const saveOTP = (email, otp) => __awaiter(void 0, void 0, void 0, function* () {
-    yield user_model_1.OTPModel.findOneAndUpdate({ email }, { otp, expiresAt: new Date(Date.now() + 3 * 60 * 1000) }, { upsert: true, new: true });
-});
+const saveOTP = async (email, otp) => {
+    await user_model_1.OTPModel.findOneAndUpdate({ email }, { otp, expiresAt: new Date(Date.now() + 3 * 60 * 1000) }, { upsert: true, new: true });
+};
 exports.saveOTP = saveOTP;
-const findUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
+const findUserByEmail = async (email) => {
     return user_model_1.UserModel.findOne({ email });
-});
+};
 exports.findUserByEmail = findUserByEmail;
-const findUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+const findUserById = async (id) => {
     return user_model_1.UserModel.findById(id);
-});
+};
 exports.findUserById = findUserById;

@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -37,14 +28,14 @@ const roleNotificationConfig = {
         msgField: "userMsg",
     },
 };
-exports.getMyNotification = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getMyNotification = (0, catchAsync_1.default)(async (req, res) => {
     const auth = req.user;
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
     if (!auth)
         throw new ApiError_1.default(http_status_1.default.UNAUTHORIZED, "Unauthorized");
-    const user = yield (0, user_utils_1.findUserById)(auth.id);
+    const user = await (0, user_utils_1.findUserById)(auth.id);
     if (!user)
         throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "User not found.");
     const config = roleNotificationConfig[user.role];
@@ -56,13 +47,13 @@ exports.getMyNotification = (0, catchAsync_1.default)((req, res) => __awaiter(vo
     const readField = config.readField;
     const msgField = config.msgField;
     // Fetch notifications
-    const notifications = yield notification_model_1.NotificationModel.find(query)
+    const notifications = await notification_model_1.NotificationModel.find(query)
         .select(selectFields)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .exec();
-    const totalNotifications = yield notification_model_1.NotificationModel.countDocuments(query).exec();
+    const totalNotifications = await notification_model_1.NotificationModel.countDocuments(query).exec();
     const pagination = (0, paginationBuilder_1.default)({
         totalData: totalNotifications,
         currentPage: page,
@@ -93,11 +84,11 @@ exports.getMyNotification = (0, catchAsync_1.default)((req, res) => __awaiter(vo
         },
     });
     // Mark notifications as read
-    yield notification_model_1.NotificationModel.updateMany(Object.assign(Object.assign({}, query), { [readField]: false }), { $set: { [readField]: true } });
-}));
-exports.getUnreadBadgeCount = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    await notification_model_1.NotificationModel.updateMany({ ...query, [readField]: false }, { $set: { [readField]: true } });
+});
+exports.getUnreadBadgeCount = (0, catchAsync_1.default)(async (req, res) => {
     const auth = req.user;
-    const user = yield (0, user_utils_1.findUserById)(auth.id);
+    const user = await (0, user_utils_1.findUserById)(auth.id);
     if (!user)
         throw new ApiError_1.default(404, "User not found");
     const config = roleNotificationConfig[user.role];
@@ -107,11 +98,11 @@ exports.getUnreadBadgeCount = (0, catchAsync_1.default)((req, res) => __awaiter(
             message: "Invalid user role.",
         });
     }
-    const unreadCount = yield notification_model_1.NotificationModel.countDocuments({
+    const unreadCount = await notification_model_1.NotificationModel.countDocuments({
         [config.queryKey]: user._id,
         [config.readField]: false,
     }).exec();
-    const rawNotifications = yield notification_model_1.NotificationModel.find({
+    const rawNotifications = await notification_model_1.NotificationModel.find({
         [config.queryKey]: user._id,
         [config.msgField]: { $exists: true },
     })
@@ -132,8 +123,8 @@ exports.getUnreadBadgeCount = (0, catchAsync_1.default)((req, res) => __awaiter(
             latestNotifications,
         },
     });
-}));
-const adminSendPushNotification = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+});
+const adminSendPushNotification = async (req, res, next) => {
     try {
         const { fcmTokens, title, body } = req.body;
         if (!fcmTokens || !title || !body) {
@@ -155,7 +146,7 @@ const adminSendPushNotification = (req, res, next) => __awaiter(void 0, void 0, 
             });
         }
         // Use the multicast helper to send notifications to all provided tokens
-        const response = yield (0, pushNotification_controller_1.sendPushNotificationToMultiple)(tokens, {
+        const response = await (0, pushNotification_controller_1.sendPushNotificationToMultiple)(tokens, {
             title,
             body,
         });
@@ -166,5 +157,5 @@ const adminSendPushNotification = (req, res, next) => __awaiter(void 0, void 0, 
     catch (error) {
         next(error);
     }
-});
+};
 exports.adminSendPushNotification = adminSendPushNotification;

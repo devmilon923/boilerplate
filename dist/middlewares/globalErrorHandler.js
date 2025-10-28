@@ -77,7 +77,7 @@ const globalErrorHandler = (error, req, res, next) => {
     else if (error instanceof mongoose_1.default.Error.CastError) {
         errorInfo = (0, handleCastError_1.default)(error);
     }
-    else if ((error === null || error === void 0 ? void 0 : error.code) === 11000) {
+    else if (error?.code === 11000) {
         errorInfo = (0, handleDuplicateError_1.default)(error);
         // 3. Finally, any generic errors
     }

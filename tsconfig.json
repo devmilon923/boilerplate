@@ -2,8 +2,10 @@
   "include": ["src"], // which files to compile
   "exclude": ["node_modules"], // which files to skip
   "compilerOptions": {
-    "target": "ES6" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
-    "module": "CommonJS" /* Specify what module code is generated. */,
+    // "target": "ES6" /* Set the JavaScript language version for
+    // emitted JavaScript and include compatible library declarations. */,
+    "target": "ES2022",
+    "module": "NodeNext" /* Specify what module code is generated. */,
     "rootDir": "./src" /* Specify the root folder within your source files. */,
     "outDir": "./dist" /* Specify an output folder for all emitted files. */,
     "esModuleInterop": true,

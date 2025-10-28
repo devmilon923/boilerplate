@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -19,10 +10,10 @@ const user_utils_1 = require("./user.utils");
 const http_status_1 = __importDefault(require("http-status"));
 const JwtToken_1 = require("../../utils/JwtToken");
 const paginationBuilder_1 = __importDefault(require("../../utils/paginationBuilder"));
-const registerUserService = (email) => __awaiter(void 0, void 0, void 0, function* () {
+const registerUserService = async (email) => {
     const start = Date.now();
     // Check if user is already registered and get OTP record in parallel
-    const [isUserRegistered, otpRecord] = yield Promise.all([
+    const [isUserRegistered, otpRecord] = await Promise.all([
         (0, user_utils_1.findUserByEmail)(email),
         user_model_1.OTPModel.findOne({ email }).lean(),
     ]);
@@ -38,8 +29,8 @@ const registerUserService = (email) => __awaiter(void 0, void 0, void 0, functio
     // Generate and save OTP
     const otp = (0, user_utils_1.generateOTP)();
     return { otp };
-});
-const createUser = (_a) => __awaiter(void 0, [_a], void 0, function* ({ name, email, image, hashedPassword, fcmToken, role, }) {
+};
+const createUser = async ({ name, email, image, hashedPassword, fcmToken, role, }) => {
     try {
         const createdUser = new user_model_1.UserModel({
             name,
@@ -49,34 +40,34 @@ const createUser = (_a) => __awaiter(void 0, [_a], void 0, function* ({ name, em
             fcmToken,
             role,
         });
-        yield createdUser.save();
+        await createdUser.save();
         return { createdUser };
     }
     catch (error) {
         console.error("User creation failed:", error);
         throw new ApiError_1.default(500, "User creation failed");
     }
-});
-const updateUserById = (id, updateData) => __awaiter(void 0, void 0, void 0, function* () {
+};
+const updateUserById = async (id, updateData) => {
     return user_model_1.UserModel.findByIdAndUpdate(id, updateData, { new: true });
-});
-const userDelete = (id, email) => __awaiter(void 0, void 0, void 0, function* () {
+};
+const userDelete = async (id, email) => {
     const baseDeletedEmail = `deleted-account-${email}`;
     let deletedEmail = baseDeletedEmail;
-    for (let counter = 1; yield user_model_1.UserModel.exists({ email: deletedEmail }); counter++) {
+    for (let counter = 1; await user_model_1.UserModel.exists({ email: deletedEmail }); counter++) {
         deletedEmail = `${baseDeletedEmail}-${counter}`;
     }
-    yield user_model_1.UserModel.findByIdAndUpdate(id, {
+    await user_model_1.UserModel.findByIdAndUpdate(id, {
         isDeleted: true,
         email: deletedEmail,
     });
-});
-const verifyForgotPasswordOTPService = (email, otp) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield (0, user_utils_1.findUserByEmail)(email);
+};
+const verifyForgotPasswordOTPService = async (email, otp) => {
+    const user = await (0, user_utils_1.findUserByEmail)(email);
     if (!user) {
         throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "User not found!");
     }
-    const otpRecord = yield user_model_1.OTPModel.findOne({ email });
+    const otpRecord = await user_model_1.OTPModel.findOne({ email });
     if (!otpRecord) {
         throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "OTP record not found!");
     }
@@ -94,8 +85,8 @@ const verifyForgotPasswordOTPService = (email, otp) => __awaiter(void 0, void 0,
         email: user.email,
     });
     return { token };
-});
-const getAdminList = (skip, limit, name) => __awaiter(void 0, void 0, void 0, function* () {
+};
+const getAdminList = async (skip, limit, name) => {
     const query = {
         isDeleted: { $ne: true },
         role: { $in: ["primary", "secondary", "junior"] },
@@ -121,8 +112,8 @@ const getAdminList = (skip, limit, name) => __awaiter(void 0, void 0, void 0, fu
             },
         },
     ];
-    const admins = yield user_model_1.UserModel.aggregate(pipeline);
-    const totalAdmins = yield user_model_1.UserModel.countDocuments(query);
+    const admins = await user_model_1.UserModel.aggregate(pipeline);
+    const totalAdmins = await user_model_1.UserModel.countDocuments(query);
     const currentPage = Math.floor(skip / limit) + 1;
     const pagination = (0, paginationBuilder_1.default)({
         totalData: totalAdmins,
@@ -130,8 +121,8 @@ const getAdminList = (skip, limit, name) => __awaiter(void 0, void 0, void 0, fu
         limit,
     });
     return { admins, pagination };
-});
-const getUserList = (skip, limit, date, name, email, role, requestStatus) => __awaiter(void 0, void 0, void 0, function* () {
+};
+const getUserList = async (skip, limit, date, name, email, role, requestStatus) => {
     const query = {
         $and: [{ isDeleted: { $ne: true } }, { role: { $nin: ["admin"] } }],
     };
@@ -168,8 +159,8 @@ const getUserList = (skip, limit, date, name, email, role, requestStatus) => __a
             },
         },
     ];
-    const users = (yield user_model_1.UserModel.aggregate(pipeline));
-    const totalUsers = yield user_model_1.UserModel.countDocuments(query);
+    const users = (await user_model_1.UserModel.aggregate(pipeline));
+    const totalUsers = await user_model_1.UserModel.countDocuments(query);
     const currentPage = Math.floor(skip / limit) + 1;
     const pagination = (0, paginationBuilder_1.default)({
         totalData: totalUsers,
@@ -177,8 +168,8 @@ const getUserList = (skip, limit, date, name, email, role, requestStatus) => __a
         limit,
     });
     return { users, pagination };
-});
-const verifyOTPService = (otp, authorizationHeader) => __awaiter(void 0, void 0, void 0, function* () {
+};
+const verifyOTPService = async (otp, authorizationHeader) => {
     let decoded;
     try {
         decoded = (0, JwtToken_1.verifyToken)(authorizationHeader);
@@ -187,11 +178,11 @@ const verifyOTPService = (otp, authorizationHeader) => __awaiter(void 0, void 0,
         throw new ApiError_1.default(http_status_1.default.UNAUTHORIZED, "Invalid token");
     }
     const email = decoded.email;
-    const dbOTP = yield user_model_1.OTPModel.findOne({ email: email });
+    const dbOTP = await user_model_1.OTPModel.findOne({ email: email });
     if (!dbOTP || dbOTP.otp !== otp) {
         throw new ApiError_1.default(http_status_1.default.BAD_REQUEST, "Invalid or expired OTP");
     }
-    const user = yield user_model_1.UserModel.findOne({ email });
+    const user = await user_model_1.UserModel.findOne({ email });
     if (!user) {
         throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "User not found!");
     }
@@ -200,8 +191,8 @@ const verifyOTPService = (otp, authorizationHeader) => __awaiter(void 0, void 0,
         role: user.role,
         email: user.email,
     });
-    return { token, email, name: user.name, phone: user === null || user === void 0 ? void 0 : user.phone };
-});
+    return { token, email, name: user.name, phone: user?.phone };
+};
 const UserService = {
     registerUserService,
     createUser,

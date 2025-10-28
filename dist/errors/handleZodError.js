@@ -9,7 +9,7 @@ const handlerZodError = (err) => {
         statusCode: 400,
         errorType: "Validation Error",
         errorMessage: errorMessageArray.join(". "),
-        errorDetails: Object.assign({}, err),
+        errorDetails: { ...err },
     };
 };
 exports.default = handlerZodError;

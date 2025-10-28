@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -22,7 +13,7 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const sanitize_html_1 = __importDefault(require("sanitize-html"));
 const JwtToken_1 = require("../../../utils/JwtToken");
 const ApiError_1 = __importDefault(require("../../../errors/ApiError"));
-exports.createPrivacy = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.createPrivacy = (0, catchAsync_1.default)(async (req, res) => {
     let decoded;
     try {
         decoded = (0, JwtToken_1.verifyToken)(req.headers.authorization);
@@ -32,7 +23,7 @@ exports.createPrivacy = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
     }
     const userId = decoded.id; // Assuming the token contains the userId
     // Find the user by userId
-    const user = yield (0, user_utils_1.findUserById)(userId);
+    const user = await (0, user_utils_1.findUserById)(userId);
     if (!user) {
         throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "User not found.");
     }
@@ -41,16 +32,16 @@ exports.createPrivacy = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
     if (!description) {
         throw new ApiError_1.default(http_status_1.default.BAD_REQUEST, "Description is required!");
     }
-    const result = yield (0, Privacy_service_1.createPrivacyInDB)({ sanitizedContent });
+    const result = await (0, Privacy_service_1.createPrivacyInDB)({ sanitizedContent });
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.CREATED,
         message: "Privacy created successfully.",
         data: result,
     });
-}));
-exports.getAllPrivacy = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield (0, Privacy_service_1.getAllPrivacyFromDB)();
+});
+exports.getAllPrivacy = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await (0, Privacy_service_1.getAllPrivacyFromDB)();
     const responseData = result[0];
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -58,8 +49,8 @@ exports.getAllPrivacy = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
         message: "Privacy retrieved successfully.",
         data: responseData,
     });
-}));
-exports.updatePrivacy = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.updatePrivacy = (0, catchAsync_1.default)(async (req, res) => {
     let decoded;
     try {
         decoded = (0, JwtToken_1.verifyToken)(req.headers.authorization);
@@ -69,7 +60,7 @@ exports.updatePrivacy = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
     }
     const userId = decoded.id;
     // Find the user by userId
-    const user = yield (0, user_utils_1.findUserById)(userId);
+    const user = await (0, user_utils_1.findUserById)(userId);
     if (!user) {
         // return sendError(res, {
         //   statusCode: httpStatus.NOT_FOUND,
@@ -87,7 +78,7 @@ exports.updatePrivacy = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
     }
     const sanitizedDescription = (0, sanitize_html_1.default)(description);
     // Assume you're updating the terms based on the sanitized description
-    const result = yield (0, Privacy_service_1.updatePrivacyInDB)(sanitizedDescription);
+    const result = await (0, Privacy_service_1.updatePrivacyInDB)(sanitizedDescription);
     if (!result) {
         // return sendError(res, {
         //   statusCode: httpStatus.INTERNAL_SERVER_ERROR,
@@ -101,12 +92,12 @@ exports.updatePrivacy = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
         message: "Privacy updated successfully.",
         data: result,
     });
-}));
+});
 //------------->app publish ----------------------
-exports.htmlRoute = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.htmlRoute = (0, catchAsync_1.default)(async (req, res) => {
     try {
         // Fetch the privacy policy data from the database
-        const result = yield (0, Privacy_service_1.getAllPrivacyFromDB)();
+        const result = await (0, Privacy_service_1.getAllPrivacyFromDB)();
         // Ensure that data exists and extract the first item
         const privacy = result && result.length > 0 ? result[0] : null;
         if (!privacy) {
@@ -163,8 +154,8 @@ exports.htmlRoute = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         console.error("Error fetching privacy policy:", error);
         throw new ApiError_1.default(error.statusCode || 500, error.message || "Failed to fetch html route api.");
     }
-}));
-exports.AppInstruction = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.AppInstruction = (0, catchAsync_1.default)(async (req, res) => {
     try {
         // Set the Content-Type header to text/html
         res.header("Content-Type", "text/html");
@@ -261,4 +252,4 @@ exports.AppInstruction = (0, catchAsync_1.default)((req, res) => __awaiter(void 
         console.error("Error fetching privacy policy:", error);
         throw new ApiError_1.default(error.statusCode || 500, error.message || "Failed to fetch instruction api.");
     }
-}));
+});

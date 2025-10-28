@@ -6,7 +6,7 @@ const handlerCastError = (err) => {
         statusCode: 400,
         errorType: "Invalid Id",
         errorMessage: `${err.value} is not a valid ID!`,
-        errorDetails: Object.assign({}, err),
+        errorDetails: { ...err },
     };
 };
 exports.default = handlerCastError;

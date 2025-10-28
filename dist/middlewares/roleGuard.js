@@ -8,8 +8,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const ApiError_1 = __importDefault(require("../errors/ApiError"));
 const guardRole = (roles) => {
     return (req, res, next) => {
-        var _a;
-        const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
+        const token = req.headers.authorization?.split(" ")[1];
         if (!token) {
             throw new ApiError_1.default(401, "Access denied. No token provided.");
         }

@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -24,7 +15,7 @@ const socket_1 = require("../../utils/socket");
 const mongoose_1 = __importDefault(require("mongoose"));
 const ApiError_1 = __importDefault(require("../../errors/ApiError"));
 const paginationBuilder_1 = __importDefault(require("../../utils/paginationBuilder"));
-exports.needSupport = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.needSupport = (0, catchAsync_1.default)(async (req, res) => {
     let decoded;
     try {
         decoded = (0, JwtToken_1.verifyToken)(req.headers.authorization);
@@ -42,7 +33,7 @@ exports.needSupport = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
         });
     }
     // Find the user and their role
-    const user = yield (0, user_utils_1.findUserById)(userId);
+    const user = await (0, user_utils_1.findUserById)(userId);
     if (!user) {
         return (0, sendError_1.default)(res, {
             statusCode: http_status_1.default.NOT_FOUND,
@@ -52,7 +43,7 @@ exports.needSupport = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     const name = user.name;
     const email = user.email;
     const msg = supportMsg;
-    yield (0, support_service_1.createSupportService)(name, email, msg);
+    await (0, support_service_1.createSupportService)(name, email, msg);
     // Success response
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
@@ -64,7 +55,7 @@ exports.needSupport = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     // Define notification messages
     const userMsg = "💡 Our support team has received your message and will get back to you shortly. 🚀";
     const primaryMsg = `🌟 A user has requested support:👤Name:${name} ✉️ Email: ${email} `;
-    yield (0, socket_1.emitNotification)({
+    await (0, socket_1.emitNotification)({
         userId: userObjectId, // Pass userId as required by your emitNotification function
         userMsg: userMsg,
         adminMsgTittle: "🔔 **Support Request Alert!**",
@@ -72,19 +63,24 @@ exports.needSupport = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
         adminMsg: primaryMsg,
     });
     //--------------------------> emit function <-------------------------
-}));
-exports.getSupport = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+});
+exports.getSupport = (0, catchAsync_1.default)(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const { support, totalSupport } = yield (0, support_service_1.supportList)(page, limit);
+    const { support, totalSupport } = await (0, support_service_1.supportList)(page, limit);
     const pagination = (0, paginationBuilder_1.default)({
         totalData: totalSupport,
         currentPage: page,
         limit,
     });
     // Patch: convert null to 0 for prevPage/nextPage to match expected type
-    const patchedPagination = Object.assign(Object.assign({}, pagination), { prevPage: (_a = pagination.prevPage) !== null && _a !== void 0 ? _a : 0, nextPage: (_b = pagination.nextPage) !== null && _b !== void 0 ? _b : 0, limit, totalItem: pagination.totalData });
+    const patchedPagination = {
+        ...pagination,
+        prevPage: pagination.prevPage ?? 0,
+        nextPage: pagination.nextPage ?? 0,
+        limit,
+        totalItem: pagination.totalData,
+    };
     if (support.length === 0) {
         return (0, sendResponse_1.default)(res, {
             statusCode: http_status_1.default.NO_CONTENT,
@@ -110,11 +106,10 @@ exports.getSupport = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
         data: responseData,
         pagination: patchedPagination,
     });
-}));
-exports.deleteSupport = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const id = (_a = req.query) === null || _a === void 0 ? void 0 : _a.supportId;
-    const support = yield (0, support_service_1.findSupportId)(id);
+});
+exports.deleteSupport = (0, catchAsync_1.default)(async (req, res) => {
+    const id = req.query?.supportId;
+    const support = await (0, support_service_1.findSupportId)(id);
     if (!support) {
         // return sendError(res, {
         //   statusCode: httpStatus.NOT_FOUND,
@@ -129,11 +124,11 @@ exports.deleteSupport = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
         // });
         throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "This support is  already deleted.");
     }
-    yield (0, support_service_1.supportDelete)(id);
+    await (0, support_service_1.supportDelete)(id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
         message: "support deleted successfully",
         data: null,
     });
-}));
+});

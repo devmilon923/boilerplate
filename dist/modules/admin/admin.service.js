@@ -1,30 +1,21 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminService = void 0;
 const user_model_1 = require("../user/user.model");
 // admin.service.ts
-const updateStatus = (userId, days) => __awaiter(void 0, void 0, void 0, function* () {
+const updateStatus = async (userId, days) => {
     let extendDays = new Date();
     extendDays.setDate(extendDays.getDate() + days);
-    const user = yield user_model_1.UserModel.findByIdAndUpdate(userId, {
+    const user = await user_model_1.UserModel.findByIdAndUpdate(userId, {
         lockUntil: days ? extendDays : null,
     }, { new: true }).select("lockUntil");
     return user;
-});
-const getUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
+};
+const getUsers = async (query) => {
     console.log(query);
-    const clients = yield user_model_1.UserModel.find(query).select("frist_name last_name email phone city");
+    const clients = await user_model_1.UserModel.find(query).select("frist_name last_name email phone city");
     return clients;
-});
+};
 // Helper function to calculate the start and end of the current week
 function getCurrentWeekDates() {
     const currentDate = new Date();
