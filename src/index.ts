@@ -12,7 +12,7 @@ async function main() {
     const dbStartTime = Date.now();
     // Connect to MongoDB with a timeout
     await mongoose.connect(DATABASE_URL as string, {
-      connectTimeoutMS: 10000, // 10 seconds timeout
+      connectTimeoutMS: 10000, // 10 second timeout
     });
     console.log(
       `\r✅ Mongodb connected successfully in ${Date.now() - dbStartTime}ms`
