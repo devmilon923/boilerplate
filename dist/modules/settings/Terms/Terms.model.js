@@ -29,3 +29,4 @@ const TermsSchema = new mongoose_1.Schema({
     description: { type: String, required: true },
 }, { timestamps: true });
 exports.TermsModel = mongoose_1.default.models.Terms || mongoose_1.default.model("Terms", TermsSchema);
+//# sourceMappingURL=Terms.model.js.map

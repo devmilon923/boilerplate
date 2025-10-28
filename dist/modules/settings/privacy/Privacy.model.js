@@ -29,3 +29,4 @@ const PrivacySchema = new mongoose_1.Schema({
     description: { type: String, required: true },
 }, { timestamps: true });
 exports.PrivacyModel = mongoose_1.default.models.Privacy || mongoose_1.default.model("Privacy", PrivacySchema);
+//# sourceMappingURL=Privacy.model.js.map

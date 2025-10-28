@@ -78,3 +78,4 @@ const OTPSchema = new mongoose_1.Schema({
 });
 exports.OTPModel = mongoose_1.default.model("OTP", OTPSchema);
 OTPSchema.index({ email: 1, expiresAt: 1 });
+//# sourceMappingURL=user.model.js.map

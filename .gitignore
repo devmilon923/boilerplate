@@ -3,4 +3,4 @@ node_modules
 /src/config/vibez-84546-firebase-adminsdk-fbsvc-f1bab122b8.json
 /src/logger/logs
 /logs
-# /dist
+/dist

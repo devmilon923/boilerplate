@@ -18,3 +18,4 @@ const updateAboutInDB = async (newData) => {
     return updatedAbout;
 };
 exports.updateAboutInDB = updateAboutInDB;
+//# sourceMappingURL=About.service.js.map

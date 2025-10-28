@@ -8,3 +8,4 @@ const routesConfig_1 = require("./routesConfig");
 const router = express_1.default.Router();
 routesConfig_1.routesConfig.forEach(({ path, handler }) => router.use(path, handler));
 exports.default = router;
+//# sourceMappingURL=index.js.map

@@ -21,3 +21,4 @@ exports.routesConfig = [
     { path: "/privacy-policy-page", handler: Privacy_controller_1.htmlRoute },
     { path: "/app-instruction", handler: Privacy_controller_1.AppInstruction },
 ];
+//# sourceMappingURL=routesConfig.js.map

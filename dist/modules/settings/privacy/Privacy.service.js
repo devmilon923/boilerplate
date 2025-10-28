@@ -20,3 +20,4 @@ const updatePrivacyInDB = async (newData) => {
     return updatedPrivacy;
 };
 exports.updatePrivacyInDB = updatePrivacyInDB;
+//# sourceMappingURL=Privacy.service.js.map

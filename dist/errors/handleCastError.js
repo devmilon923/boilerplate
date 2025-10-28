@@ -10,3 +10,4 @@ const handlerCastError = (err) => {
     };
 };
 exports.default = handlerCastError;
+//# sourceMappingURL=handleCastError.js.map

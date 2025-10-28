@@ -29,3 +29,4 @@ const AboutSchema = new mongoose_1.Schema({
     description: { type: String, required: true },
 }, { timestamps: true });
 exports.AboutModel = mongoose_1.default.models.About || mongoose_1.default.model("About", AboutSchema);
+//# sourceMappingURL=About.model.js.map

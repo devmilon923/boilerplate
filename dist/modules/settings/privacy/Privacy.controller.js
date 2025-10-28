@@ -253,3 +253,4 @@ exports.AppInstruction = (0, catchAsync_1.default)(async (req, res) => {
         throw new ApiError_1.default(error.statusCode || 500, error.message || "Failed to fetch instruction api.");
     }
 });
+//# sourceMappingURL=Privacy.controller.js.map

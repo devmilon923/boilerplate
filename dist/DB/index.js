@@ -67,3 +67,4 @@ const seedAbout = async () => {
 };
 exports.seedAbout = seedAbout;
 exports.default = exports.seedSuperAdmin;
+//# sourceMappingURL=index.js.map

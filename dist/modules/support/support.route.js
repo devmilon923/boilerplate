@@ -13,3 +13,4 @@ router.post("/need", support_controller_1.needSupport);
 router.get("/", (0, roleGuard_1.guardRole)("admin"), support_controller_1.getSupport);
 router.post("/delete", (0, roleGuard_1.guardRole)("admin"), support_controller_1.deleteSupport);
 exports.SupportRoutes = router;
+//# sourceMappingURL=support.route.js.map

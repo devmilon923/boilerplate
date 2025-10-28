@@ -47,3 +47,4 @@ const generateRegisterToken = (payload) => {
     return jsonwebtoken_2.default.sign(payload, config_1.JWT_SECRET_KEY, { expiresIn: "1h" });
 };
 exports.generateRegisterToken = generateRegisterToken;
+//# sourceMappingURL=JwtToken.js.map

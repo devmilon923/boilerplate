@@ -8,3 +8,4 @@ const sendError = (res, { statusCode, success = false, message }) => {
     });
 };
 exports.default = sendError;
+//# sourceMappingURL=sendError.js.map

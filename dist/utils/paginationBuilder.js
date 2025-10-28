@@ -13,3 +13,4 @@ function paginationBuilder({ totalData, currentPage, limit, }) {
         totalData,
     };
 }
+//# sourceMappingURL=paginationBuilder.js.map

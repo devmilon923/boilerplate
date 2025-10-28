@@ -12,3 +12,4 @@ router.post("/create", (0, roleGuard_1.guardRole)("admin"), About_controller_1.c
 router.get("/", About_controller_1.getAllAbout);
 router.patch("/update", About_controller_1.updateAbout);
 exports.AboutRoutes = router;
+//# sourceMappingURL=About.route.js.map

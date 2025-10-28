@@ -47,3 +47,4 @@ const supportDelete = async (id) => {
     });
 };
 exports.supportDelete = supportDelete;
+//# sourceMappingURL=support.service.js.map

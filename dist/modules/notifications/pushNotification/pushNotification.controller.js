@@ -73,3 +73,4 @@ const sendPushNotificationToMultiple = async (tokens, payload) => {
     }
 };
 exports.sendPushNotificationToMultiple = sendPushNotificationToMultiple;
+//# sourceMappingURL=pushNotification.controller.js.map

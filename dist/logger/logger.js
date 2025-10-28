@@ -1,34 +1,12 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.logHttpRequests = exports.logger = void 0;
 const winston_1 = require("winston");
-const winston_daily_rotate_file_1 = __importDefault(require("winston-daily-rotate-file"));
-const path_1 = __importDefault(require("path"));
-const fs_1 = __importDefault(require("fs"));
 const colorette_1 = require("colorette");
-// Ensure the logs directory exists
-const logDirectory = path_1.default.join(__dirname, "logs");
-if (!fs_1.default.existsSync(logDirectory)) {
-    fs_1.default.mkdirSync(logDirectory);
-}
 exports.logger = (0, winston_1.createLogger)({
     level: "info", // Set the appropriate logging level
     format: winston_1.format.combine(winston_1.format.timestamp({ format: "DD-MM-YYYY HH:mm:ss" }), winston_1.format.errors({ stack: true }), winston_1.format.splat(), winston_1.format.json()),
     transports: [
-        new winston_daily_rotate_file_1.default({
-            filename: path_1.default.join(logDirectory, "error-%DATE%.log"),
-            datePattern: "YYYY-MM-DD",
-            level: "error", // Logs only error level
-            format: winston_1.format.combine(winston_1.format.uncolorize(), winston_1.format.json()), // Ensure no color in files
-        }),
-        new winston_daily_rotate_file_1.default({
-            filename: path_1.default.join(logDirectory, "combined-%DATE%.log"),
-            datePattern: "YYYY-MM-DD",
-            format: winston_1.format.combine(winston_1.format.uncolorize(), winston_1.format.json()), // Ensure no color in files
-        }),
         new winston_1.transports.Console({
             format: winston_1.format.combine(winston_1.format.colorize(), winston_1.format.simple()),
         }),
@@ -81,3 +59,4 @@ const logHttpRequests = (req, res, next) => {
     next();
 };
 exports.logHttpRequests = logHttpRequests;
+//# sourceMappingURL=logger.js.map

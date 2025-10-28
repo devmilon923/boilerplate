@@ -25,3 +25,4 @@ const changeUserStatus = (0, catchAsync_1.default)(async (req, res) => {
 exports.AdminController = {
     changeUserStatus,
 };
+//# sourceMappingURL=admin.controller.js.map

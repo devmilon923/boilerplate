@@ -11,3 +11,4 @@ const supportSchema = new mongoose_1.Schema({
 // Create the RegisterShower model
 const supportModel = (0, mongoose_1.model)("support", supportSchema);
 exports.default = supportModel;
+//# sourceMappingURL=support.model.js.map

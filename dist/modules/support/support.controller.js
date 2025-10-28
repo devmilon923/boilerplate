@@ -132,3 +132,4 @@ exports.deleteSupport = (0, catchAsync_1.default)(async (req, res) => {
         data: null,
     });
 });
+//# sourceMappingURL=support.controller.js.map

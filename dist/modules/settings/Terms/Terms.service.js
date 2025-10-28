@@ -18,3 +18,4 @@ const updateTermsInDB = async (newData) => {
     return updatedTerms;
 };
 exports.updateTermsInDB = updateTermsInDB;
+//# sourceMappingURL=Terms.service.js.map

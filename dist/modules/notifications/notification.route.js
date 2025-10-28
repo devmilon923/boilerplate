@@ -12,3 +12,4 @@ router.get("/", (0, roleGuard_1.guardRole)(["admin", "user"]), notification_cont
 router.get("/badge-count", (0, roleGuard_1.guardRole)(["admin", "user"]), notification_controller_1.getUnreadBadgeCount);
 router.post("/send-push", (0, roleGuard_1.guardRole)("admin"), notification_controller_1.adminSendPushNotification);
 exports.NotificationRoutes = router;
+//# sourceMappingURL=notification.route.js.map

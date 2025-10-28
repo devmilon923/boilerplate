@@ -533,3 +533,4 @@ const UserController = {
     getAllUsers,
 };
 exports.UserController = UserController;
+//# sourceMappingURL=user.controller.js.map

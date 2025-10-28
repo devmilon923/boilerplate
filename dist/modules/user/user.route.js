@@ -20,3 +20,4 @@ router.patch("/profile-update", (0, roleGuard_1.guardRole)(["admin", "user"]), m
 router.get("/my-profile", (0, roleGuard_1.guardRole)(["admin", "user"]), user_controller_1.UserController.getSelfInfo);
 router.delete("/account-delete", (0, roleGuard_1.guardRole)(["admin", "user"]), user_controller_1.UserController.deleteUser);
 exports.UserRoutes = router;
+//# sourceMappingURL=user.route.js.map

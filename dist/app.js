@@ -32,3 +32,4 @@ app.use((err, req, res, next) => {
     next(err);
 });
 exports.default = app;
+//# sourceMappingURL=app.js.map

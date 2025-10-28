@@ -85,3 +85,4 @@ exports.updateTerms = (0, catchAsync_1.default)(async (req, res) => {
         data: result,
     });
 });
+//# sourceMappingURL=Terms.controller.js.map

@@ -94,3 +94,4 @@ exports.updateAbout = (0, catchAsync_1.default)(async (req, res) => {
         data: result,
     });
 });
+//# sourceMappingURL=About.controller.js.map

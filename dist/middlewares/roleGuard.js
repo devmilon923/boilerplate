@@ -31,3 +31,4 @@ const guardRole = (roles) => {
     };
 };
 exports.guardRole = guardRole;
+//# sourceMappingURL=roleGuard.js.map

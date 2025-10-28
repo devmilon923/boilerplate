@@ -36,3 +36,4 @@ exports.AdminService = {
     getUsers,
     updateStatus,
 };
+//# sourceMappingURL=admin.service.js.map

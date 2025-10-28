@@ -12,3 +12,4 @@ router.post("/create", (0, roleGuard_1.guardRole)("admin"), Privacy_controller_1
 router.get("/", Privacy_controller_1.getAllPrivacy);
 router.patch("/update", (0, roleGuard_1.guardRole)("admin"), Privacy_controller_1.updatePrivacy);
 exports.PrivacyRoutes = router;
+//# sourceMappingURL=Privacy.route.js.map
