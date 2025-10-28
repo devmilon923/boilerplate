@@ -52,7 +52,7 @@ process.on("unhandledRejection", (err) => {
   console.error(" ☠️ Unhandled promise rejection detected:", err);
   server.close(() => process.exit(1));
 });
-
+//no comment
 process.on("uncaughtException", (error) => {
   console.error("☠️ Uncaught exception detected:", error);
   server.close(() => process.exit(1));
