@@ -25,6 +25,12 @@ router
     PostController.getPosts,
   );
 router
+  .route("/me")
+  .get(
+    passport.authenticate("jwt", { session: false }),
+    PostController.getMyPosts,
+  );
+router
   .route("/comments")
   .post(
     passport.authenticate("jwt", { session: false }),

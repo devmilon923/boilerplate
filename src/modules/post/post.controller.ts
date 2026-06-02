@@ -187,7 +187,110 @@ const getPosts = handleAsync(async (req: Request, res: Response) => {
     cursor: cursor,
   });
 });
+const getMyPosts = handleAsync(async (req: Request, res: Response) => {
+  const user = req.user as TJwtUser;
+  const pc = Number(req.query.pc as string);
+  const limit = Number(req.query.limit as string) || 10;
 
+  // Main posts query
+  const result = await prisma.post.findMany({
+    take: limit,
+    skip: pc ? 1 : 0,
+    cursor: pc ? { id: pc } : undefined,
+    where: {
+      authorId: user.id,
+      savedPosts: { none: { user: { id: user.id } } },
+    },
+    select: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          isVerifyed: true,
+          profession: true,
+        },
+      },
+      content: true,
+      createdAt: true,
+      id: true,
+      likesCount: true,
+      commentsCount: true,
+      feeling: true,
+    },
+    orderBy: [{ id: "desc" }, { trendScore: "desc" }],
+  });
+
+  if (result.length === 0) {
+    return sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Get all post successfully!",
+      data: [],
+      cursor: null,
+    });
+  }
+
+  const postIds = result.map((data) => data.id);
+  const authors = result.map((data) => data.author.id);
+
+  // Parallel enrichment: likes, comments, and following status
+  const [likes, latestComments, followers] = await Promise.all([
+    prisma.likes.findMany({
+      where: {
+        userId: user.id,
+        likeType: "post",
+        sourceId: { in: postIds },
+      },
+      select: { sourceId: true },
+    }),
+    prisma.comment.findMany({
+      where: {
+        sourceId: { in: postIds },
+        commentType: "post",
+      },
+      distinct: ["sourceId"],
+      orderBy: [{ sourceId: "desc" }, { id: "desc" }],
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+      },
+    }),
+    prisma.follower.findMany({
+      where: {
+        followingId: { in: authors },
+        followerId: user.id,
+      },
+      select: { followingId: true },
+    }),
+  ]);
+
+  // Use Maps/Sets for O(1) lookup
+  const likesSet = new Set(likes.map((like) => like.sourceId));
+  const commentsMap = new Map(latestComments.map((c) => [c.sourceId, c]));
+  const followingSet = new Set(followers.map((f) => f.followingId));
+
+  const response = result.map((data) => ({
+    ...data,
+    isLiked: likesSet.has(data.id),
+    isFollowing: followingSet.has(data.author.id),
+    comments: commentsMap.has(data.id) ? [commentsMap.get(data.id)] : [],
+  }));
+
+  const cursor = result.length === limit ? result[result.length - 1].id : null;
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Get all post successfully!",
+    data: response,
+    cursor: cursor,
+  });
+});
 const deletePost = handleAsync(async (req: Request, res: Response) => {
   return sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -553,4 +656,5 @@ export const PostController = {
   likeAction,
   bookmarkAction,
   bookmarksGet,
+  getMyPosts,
 };
