@@ -31,6 +31,12 @@ router
     PostController.getMyPosts,
   );
 router
+  .route("/me/trending")
+  .get(
+    passport.authenticate("jwt", { session: false }),
+    PostController.getMyTrendingPosts,
+  );
+router
   .route("/comments")
   .post(
     passport.authenticate("jwt", { session: false }),

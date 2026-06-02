@@ -299,7 +299,40 @@ const deletePost = handleAsync(async (req: Request, res: Response) => {
     data: true,
   });
 });
-
+const getMyTrendingPosts = handleAsync(async (req: Request, res: Response) => {
+  const user = req.user as TJwtUser;
+  const result = await prisma.post.findMany({
+    where: {
+      authorId: user.id,
+      savedPosts: { none: { user: { id: user.id } } },
+    },
+    orderBy: { trendScore: "desc" },
+    take: 10,
+    select: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          isVerifyed: true,
+          profession: true,
+        },
+      },
+      content: true,
+      createdAt: true,
+      id: true,
+      likesCount: true,
+      commentsCount: true,
+      feeling: true,
+    },
+  });
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "All trending post get successfully!",
+    data: result,
+  });
+});
 const addComment = handleAsync(async (req: Request, res: Response) => {
   const user = req.user as TJwtUser;
   const { content, sourceId, commentType } = req.body as z.infer<
@@ -657,4 +690,5 @@ export const PostController = {
   bookmarkAction,
   bookmarksGet,
   getMyPosts,
+  getMyTrendingPosts,
 };
