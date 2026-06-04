@@ -220,7 +220,7 @@ const resendOTP = handleAsync(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production" ? true : false,
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-    maxAge: parseInt(process.env.veriExpire as string) * 1000,
+    maxAge: parseInt(process.env.rfExpire as string) * 1000,
   });
   await sendOTP({
     to: user.email,
