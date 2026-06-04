@@ -189,6 +189,7 @@ const resendOTP = handleAsync(async (req: Request, res: Response) => {
       "Authorization token is required",
     );
   }
+  console.log("===================");
   const payload: any = decodeToken(verificationToken);
   if (
     payload.type !== "accountVerification" &&
@@ -196,6 +197,12 @@ const resendOTP = handleAsync(async (req: Request, res: Response) => {
   ) {
     throw new ServerError(httpStatus.BAD_REQUEST, "Invalid action");
   }
+  const user: any = await prisma.user.findUnique({
+    where: { id: Number(payload.user as string) },
+    select: { id: true, email: true },
+  });
+  if (!user)
+    throw new ServerError(httpStatus.NOT_FOUND, "invalid user account");
   const time = await redisDatabase.ttl("otp" + payload.user.toString());
   if (time && time !== -2) {
     throw new ServerError(
@@ -216,7 +223,7 @@ const resendOTP = handleAsync(async (req: Request, res: Response) => {
     maxAge: parseInt(process.env.veriExpire as string) * 1000,
   });
   await sendOTP({
-    to: payload.email,
+    to: user.email,
     subject: "Verify your account",
     otp: secureOTP.plainToken,
   });

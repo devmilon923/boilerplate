@@ -12,7 +12,7 @@ export const verificationToken = (
   type: "accountVerification" | "forgetPassword",
 ) => {
   return jwt.sign({ user: userId, type }, privateToken, {
-    expiresIn: parseInt(process.env.veriExpire as string),
+    expiresIn: parseInt(process.env.rfExpire as string),
   });
 };
 
