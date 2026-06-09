@@ -59,7 +59,7 @@ const localLogin = handleAsync(async (req: Request, res: Response) => {
     },
   });
   if (!user) {
-    throw new ServerError(httpStatus.BAD_REQUEST, "Invalid login details");
+    throw new ServerError(httpStatus.BAD_REQUEST, "Invalid login detail");
   }
   const isValidPassword = bcrypt.compareSync(req.body.password, user.password);
   if (!isValidPassword) {
