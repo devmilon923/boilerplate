@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:latest
     environment:
-      - POSTGRES_USER=pusername
-      - POSTGRES_PASSWORD=ppassword
-      - POSTGRES_DB=Random
+      - POSTGRES_USER=default
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=default
     volumes:
       - postgres-data:/var/lib/postgresql
     ports:
