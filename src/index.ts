@@ -11,7 +11,7 @@ import passport from "passport";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 const app: Express = express();
-const port = process.env.ServerPort || 3001;
+const PORT = process.env.ServerPort || 3000;
 app.use(cookieParser());
 app.use(
   cors({
@@ -27,6 +27,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 app.use(mainrouter);
 app.use(globalErrorHandler);
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+
+app.listen(Number(PORT), "0.0.0.0", () => {
+  console.log(`Server is running on port ${PORT}`);
 });
