@@ -1,7 +1,7 @@
 import Redis from "ioredis";
-const redisDatabase = new Redis({
-  host: process.env.RedisHost as string,
-  port: parseInt(process.env.RedisPort as string),
+
+const redisDatabase = new Redis(process.env.RedisURL as string, {
+  tls: {},
   retryStrategy: (times) => Math.min(times * 50, 2000),
   enableReadyCheck: true,
   enableOfflineQueue: true,
