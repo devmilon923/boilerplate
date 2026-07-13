@@ -25,7 +25,6 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
       errorInfo.statusCode = 409;
       errorInfo.errorMessage = "This record already exists";
     } else if (error.code === "P2025") {
-      // Record not found
       errorInfo.statusCode = 404;
       errorInfo.errorMessage = "Record not found";
     } else if (error.code === "P2003") {
