@@ -5,7 +5,7 @@ const transport = nodemailer.createTransport({
   host: process.env.SMTP_HOST as string,
   port: Number(process.env.SMTP_PORT as string),
   secure: false,
-  requireTLS: true,
+  //   requireTLS: true,
   auth: {
     user: process.env.Nodemailer_GMAIL as string,
     pass: process.env.Nodemailer_GMAIL_PASSWORD as string,
