@@ -7,8 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
-    "worker": "nodemon --exec ts-node ./src/queue/worker.ts"
+    "preview": "node dist/index.js",
+    "worker": "nodemon --exec ts-node ./src/queue/worker.ts",
+    "start": "concurrently \"npm run preview\" \"npm run worker\""
   },
   "repository": {
     "type": "git",
@@ -43,6 +44,7 @@
     "@types/nodemailer": "^8.0.0",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.76.6",
+    "concurrently": "^10.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
