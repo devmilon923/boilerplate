@@ -2,7 +2,7 @@ import { Job, Worker } from "bullmq";
 import { sendNotification } from "../../utils/notifications";
 import { prisma } from "../../utils/prisma";
 import { notificationType } from "../../generated/prisma/enums";
-import { sendOTP } from "../../utils/nodemailler";
+import { sendOTP } from "../../utils/resend";
 import redisDatabase from "../../utils/redisConnection";
 
 const W_SendLikeNotification = async (
@@ -180,5 +180,3 @@ new Worker("handleNotificationSetting", W_CreateNotificationSetting, {
   connection: redisDatabase,
 });
 new Worker("handleSendOtp", W_SendOTP, { connection: redisDatabase });
-
-

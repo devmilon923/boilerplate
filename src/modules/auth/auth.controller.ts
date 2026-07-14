@@ -15,7 +15,7 @@ import {
   verificationToken,
 } from "../../utils/jwtValidation";
 import { generateOTP, verifyOTP } from "../../utils/otpValidation";
-import { sendOTP } from "../../utils/nodemailler";
+import { sendOTP } from "../../utils/resend";
 import { NotificationQueue } from "../../queue/producers/notifications";
 
 const register = handleAsync(async (req: Request, res: Response) => {
