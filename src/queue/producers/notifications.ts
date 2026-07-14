@@ -1,12 +1,5 @@
-import { Queue, Worker } from "bullmq";
+import { Queue } from "bullmq";
 import redisDatabase from "../../utils/redisConnection";
-
-import {
-  W_CreateNotificationSetting,
-  W_SendCommentNotification,
-  W_SendLikeNotification,
-  W_SendOTP,
-} from "../workers/notificationWorker";
 
 const handleSendOtp = new Queue("handleSendOtp", {
   connection: redisDatabase,
@@ -82,16 +75,7 @@ async function comment(params: {
     throw error;
   }
 }
-new Worker("handleSendLikeNotification", W_SendLikeNotification, {
-  connection: redisDatabase,
-});
-new Worker("handleSendCommentNotification", W_SendCommentNotification, {
-  connection: redisDatabase,
-});
-new Worker("handleNotificationSetting", W_CreateNotificationSetting, {
-  connection: redisDatabase,
-});
-new Worker("handleSendOtp", W_SendOTP, { connection: redisDatabase });
+
 export const NotificationQueue = {
   like,
   comment,

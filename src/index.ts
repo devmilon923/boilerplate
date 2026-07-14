@@ -10,6 +10,7 @@ import globalErrorHandler from "./middleware/errorHandler";
 import passport from "passport";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import transport from "./utils/nodemailler";
 const app: Express = express();
 const PORT = process.env.ServerPort || 3000;
 app.use(cookieParser());
@@ -22,7 +23,15 @@ app.use(
 app.use(express.json());
 app.use(passport.initialize());
 app.use(requestLogger);
-app.get("/", (req: Request, res: Response) => {
+app.get("/", async (req: Request, res: Response) => {
+  try {
+    // Run the verification check
+    await transport.verify();
+    console.log("✅ SMTP Server connection successful! Ready to send emails.");
+  } catch (error: any) {
+    console.error("❌ SMTP Server connection failed:");
+    console.error(error.message);
+  }
   res.json({ message: "Hello from Express with TypeScript!" });
 });
 app.use(mainrouter);

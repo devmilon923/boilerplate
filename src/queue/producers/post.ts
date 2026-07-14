@@ -1,8 +1,6 @@
 import { Queue, Worker } from "bullmq";
 import redisDatabase from "../../utils/redisConnection";
 import { TCommentState, TLikeState } from "../../modules/post/post.controller";
-import { W_CommentHandler, W_LikeHandler } from "../workers/postWorker";
-
 const handleLike = new Queue("handleLike", {
   connection: redisDatabase,
   defaultJobOptions: {
@@ -32,9 +30,6 @@ async function comment(data: TCommentState) {
     throw error;
   }
 }
-// Worker=======
-new Worker("handleLike", W_LikeHandler, { connection: redisDatabase });
-new Worker("handleComment", W_CommentHandler, { connection: redisDatabase });
 
 export const PostQueue = {
   like,

@@ -1,6 +1,7 @@
 import { Job, Worker } from "bullmq";
 import { prisma } from "../../utils/prisma";
 import { TCommentState, TLikeState } from "../../modules/post/post.controller";
+import redisDatabase from "../../utils/redisConnection";
 let basedFormula = {
   likes: 1,
   comments: 2,
@@ -110,5 +111,8 @@ const W_CommentHandler = async (job: Job<any, any, string>) => {
     throw error;
   }
 };
+// Worker=======
+new Worker("handleLike", W_LikeHandler, { connection: redisDatabase });
+new Worker("handleComment", W_CommentHandler, { connection: redisDatabase });
 
-export { W_LikeHandler, W_CommentHandler };
+

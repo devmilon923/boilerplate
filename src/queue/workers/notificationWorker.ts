@@ -3,6 +3,7 @@ import { sendNotification } from "../../utils/notifications";
 import { prisma } from "../../utils/prisma";
 import { notificationType } from "../../generated/prisma/enums";
 import { sendOTP } from "../../utils/nodemailler";
+import redisDatabase from "../../utils/redisConnection";
 
 const W_SendLikeNotification = async (
   job: Job<
@@ -168,9 +169,16 @@ const W_CreateNotificationSetting = async (job: Job<any, any, any>) => {
     throw error;
   }
 };
-export {
-  W_SendLikeNotification,
-  W_SendCommentNotification,
-  W_CreateNotificationSetting,
-  W_SendOTP,
-};
+
+new Worker("handleSendLikeNotification", W_SendLikeNotification, {
+  connection: redisDatabase,
+});
+new Worker("handleSendCommentNotification", W_SendCommentNotification, {
+  connection: redisDatabase,
+});
+new Worker("handleNotificationSetting", W_CreateNotificationSetting, {
+  connection: redisDatabase,
+});
+new Worker("handleSendOtp", W_SendOTP, { connection: redisDatabase });
+
+

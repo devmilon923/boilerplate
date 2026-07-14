@@ -10,6 +10,14 @@ const transport = nodemailer.createTransport({
     pass: process.env.Nodemailer_GMAIL_PASSWORD as string,
   },
 });
+console.log({
+  host: process.env.SMTP_HOST as string,
+  port: Number(process.env.SMTP_PORT as string),
+  auth: {
+    user: process.env.Nodemailer_GMAIL as string,
+    pass: process.env.Nodemailer_GMAIL_PASSWORD as string,
+  },
+});
 
 export const sendOTP = async ({
   to,
