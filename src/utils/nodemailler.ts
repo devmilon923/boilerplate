@@ -4,11 +4,14 @@ dotenv.config();
 const transport = nodemailer.createTransport({
   host: process.env.SMTP_HOST as string,
   port: Number(process.env.SMTP_PORT as string),
-  secure: true,
+  secure: false,
+  requireTLS: true,
   auth: {
     user: process.env.Nodemailer_GMAIL as string,
     pass: process.env.Nodemailer_GMAIL_PASSWORD as string,
   },
+  connectionTimeout: 10000,
+  socketTimeout: 10000,
 });
 console.log({
   host: process.env.SMTP_HOST as string,
