@@ -69,6 +69,7 @@ const register = handleAsync(async (req: Request, res: Response) => {
     subject: "Verify your account",
     otp: secureOTP.plainToken,
   });
+  console.log("Email send confrim from before notification queue");
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,

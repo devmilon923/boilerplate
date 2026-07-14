@@ -78,7 +78,9 @@ const W_SendOTP = async (
   job: Job<{ to: string; subject: string; otp: number }, any, string>,
 ) => {
   try {
+    console.log("Email send confrim from before notification queue");
     await sendOTP(job.data);
+    console.log("Email send confrim from after notification queue");
   } catch (error) {
     throw error;
   }

@@ -12,11 +12,12 @@ export const sendOTP = async ({
   subject: string;
   otp: number;
 }) => {
-  await resend.emails.send({
-    from: process.env.FROM_EMAIL as string,
-    to,
-    subject,
-    html: `
+  try {
+    await resend.emails.send({
+      from: process.env.FROM_EMAIL as string,
+      to: [to],
+      subject,
+      html: `
         <div style="font-family: Arial, sans-serif;">
       <h2 style="color: #333;">${subject}</h2>
       <p>Please use the following OTP to verify your account:</p>
@@ -27,7 +28,12 @@ export const sendOTP = async ({
       <p>${process.env.APP_NAME || "Your App"}</p>
     </div>
     `,
-  });
+    });
+    console.log("Email send confrim from resend controller");
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 };
 export async function verifyEmailServer() {
   // Defensive check: Catch missing environment setup instantly
