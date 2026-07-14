@@ -112,7 +112,21 @@ const W_CommentHandler = async (job: Job<any, any, string>) => {
   }
 };
 // Worker=======
-new Worker("handleLike", W_LikeHandler, { connection: redisDatabase });
-new Worker("handleComment", W_CommentHandler, { connection: redisDatabase });
+new Worker("handleLike", W_LikeHandler, {
+  connection: redisDatabase, // 1. Increase drain delay (value is in SECONDS)
+  // Default is 5s (17k commands/day). 300s (5 mins) drops it to ~288 commands/day.
+  drainDelay: 300,
 
+  // 2. Increase stalled job check interval (value is in MILLISECONDS)
+  // Default is 30000ms (30s). 300000ms drops the checks to every 5 minutes.
+  stalledInterval: 300000,
+});
+new Worker("handleComment", W_CommentHandler, {
+  connection: redisDatabase, // 1. Increase drain delay (value is in SECONDS)
+  // Default is 5s (17k commands/day). 300s (5 mins) drops it to ~288 commands/day.
+  drainDelay: 300,
 
+  // 2. Increase stalled job check interval (value is in MILLISECONDS)
+  // Default is 30000ms (30s). 300000ms drops the checks to every 5 minutes.
+  stalledInterval: 300000,
+});

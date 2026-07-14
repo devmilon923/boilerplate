@@ -174,11 +174,40 @@ const W_CreateNotificationSetting = async (job: Job<any, any, any>) => {
 
 new Worker("handleSendLikeNotification", W_SendLikeNotification, {
   connection: redisDatabase,
+  // 1. Increase drain delay (value is in SECONDS)
+  // Default is 5s (17k commands/day). 300s (5 mins) drops it to ~288 commands/day.
+  drainDelay: 300,
+
+  // 2. Increase stalled job check interval (value is in MILLISECONDS)
+  // Default is 30000ms (30s). 300000ms drops the checks to every 5 minutes.
+  stalledInterval: 300000,
 });
 new Worker("handleSendCommentNotification", W_SendCommentNotification, {
   connection: redisDatabase,
+  // 1. Increase drain delay (value is in SECONDS)
+  // Default is 5s (17k commands/day). 300s (5 mins) drops it to ~288 commands/day.
+  drainDelay: 300,
+
+  // 2. Increase stalled job check interval (value is in MILLISECONDS)
+  // Default is 30000ms (30s). 300000ms drops the checks to every 5 minutes.
+  stalledInterval: 300000,
 });
 new Worker("handleNotificationSetting", W_CreateNotificationSetting, {
   connection: redisDatabase,
+  // 1. Increase drain delay (value is in SECONDS)
+  // Default is 5s (17k commands/day). 300s (5 mins) drops it to ~288 commands/day.
+  drainDelay: 300,
+
+  // 2. Increase stalled job check interval (value is in MILLISECONDS)
+  // Default is 30000ms (30s). 300000ms drops the checks to every 5 minutes.
+  stalledInterval: 300000,
 });
-new Worker("handleSendOtp", W_SendOTP, { connection: redisDatabase });
+new Worker("handleSendOtp", W_SendOTP, {
+  connection: redisDatabase, // 1. Increase drain delay (value is in SECONDS)
+  // Default is 5s (17k commands/day). 300s (5 mins) drops it to ~288 commands/day.
+  drainDelay: 300,
+
+  // 2. Increase stalled job check interval (value is in MILLISECONDS)
+  // Default is 30000ms (30s). 300000ms drops the checks to every 5 minutes.
+  stalledInterval: 300000,
+});
