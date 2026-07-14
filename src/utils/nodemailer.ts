@@ -10,8 +10,18 @@ const transport = nodemailer.createTransport({
     user: process.env.Nodemailer_GMAIL as string,
     pass: process.env.Nodemailer_GMAIL_PASSWORD as string,
   },
-  connectionTimeout: 10000,
-  socketTimeout: 10000,
+  //   connectionTimeout: 10000,
+  //   socketTimeout: 10000,
+});
+console.log({
+  host: process.env.SMTP_HOST as string,
+  port: Number(process.env.SMTP_PORT as string),
+  secure: false,
+  requireTLS: true,
+  auth: {
+    user: process.env.Nodemailer_GMAIL as string,
+    pass: process.env.Nodemailer_GMAIL_PASSWORD as string,
+  },
 });
 async function checkNodeemailer() {
   try {
