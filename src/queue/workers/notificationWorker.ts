@@ -2,7 +2,7 @@ import { Job, Worker } from "bullmq";
 import { sendNotification } from "../../utils/notifications";
 import { prisma } from "../../utils/prisma";
 import { notificationType } from "../../generated/prisma/enums";
-import { sendOTP } from "../../utils/resend";
+import { sendOTP } from "../../utils/nodemailer";
 import redisDatabase from "../../utils/redisConnection";
 
 const W_SendLikeNotification = async (
