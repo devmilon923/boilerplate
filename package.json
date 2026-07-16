@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --exec ts-node src/index.ts",
+    "dev": "docker compose up -d && nodemon --exec ts-node src/index.ts",
     "build": "tsc",
     "preview": "node dist/index.js",
     "worker": "nodemon --exec ts-node ./src/queue/worker.ts",
-    "start": "npm run build && concurrently \"npm run preview\" \"npm run worker\""
+    "start": "docker compose up -d && npm run build && concurrently \"npm run preview\" \"npm run worker\""
   },
   "repository": {
     "type": "git",
