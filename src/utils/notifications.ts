@@ -10,7 +10,8 @@ export type NotificationType = {
     | "LIKE_ON_COMMENT"
     | "COMMENT_ON_POST"
     | "COMMENT_ON_REPLIE"
-    | "FOLLOW";
+    | "FOLLOW"
+    | "ACCOUNT_VERIFIED";
 };
 
 export const sendNotification = async (payload: NotificationType) => {

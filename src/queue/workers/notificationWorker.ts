@@ -82,6 +82,7 @@ const W_SendOTP = async (
     await sendOTP(job.data);
     console.log("Email send confrim from after notification queue");
   } catch (error) {
+    console.error("Error in W_SendOTP worker:", error);
     throw error;
   }
 };
@@ -171,6 +172,24 @@ const W_CreateNotificationSetting = async (job: Job<any, any, any>) => {
     throw error;
   }
 };
+const W_SendVerificationNotification = async (
+  job: Job<{ userId: number }, any, string>,
+) => {
+  try {
+    const userId = job.data.userId;
+    console.log(`Processing verification notification for user ID: ${userId}`);
+    await sendNotification({
+      title: "Your account is created and verified successfully!",
+      notiType: "ACCOUNT_VERIFIED" as notificationType,
+      senderId: userId,
+      receiverId: userId,
+    });
+    console.log(`Verification notification created for user ID: ${userId}`);
+  } catch (error) {
+    console.error("Error in W_SendVerificationNotification worker:", error);
+    throw error;
+  }
+};
 
 new Worker("handleSendLikeNotification", W_SendLikeNotification, {
   connection: redisDatabase,
@@ -209,5 +228,10 @@ new Worker("handleSendOtp", W_SendOTP, {
 
   // 2. Increase stalled job check interval (value is in MILLISECONDS)
   // Default is 30000ms (30s). 300000ms drops the checks to every 5 minutes.
+  stalledInterval: 300000,
+});
+new Worker("handleSendVerificationNotification", W_SendVerificationNotification, {
+  connection: redisDatabase,
+  drainDelay: 300,
   stalledInterval: 300000,
 });

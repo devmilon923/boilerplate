@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import "./workers/postWorker";
 import "./workers/feedWorker";
 import "./workers/notificationWorker";

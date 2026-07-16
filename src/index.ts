@@ -10,8 +10,6 @@ import globalErrorHandler from "./middleware/errorHandler";
 import passport from "passport";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import { verifyEmailServer } from "./utils/resend";
-import transport from "./utils/nodemailer";
 
 const app: Express = express();
 const PORT = process.env.ServerPort || 3000;
@@ -25,14 +23,9 @@ app.use(
 app.use(express.json());
 app.use(passport.initialize());
 app.use(requestLogger);
-verifyEmailServer();
+// verifyEmailServer();
 app.get("/", async (req: Request, res: Response) => {
-  // try {
-  //   const result = await transport.verify();
-  //   console.log("Nodemailer working", result);
-  // } catch (error) {
-  //   console.log(error);
-  // }
+
   res.json({ message: "Hello from Express with TypeScript!" });
 });
 app.use(mainrouter);

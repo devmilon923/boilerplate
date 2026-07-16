@@ -19,6 +19,7 @@ enum notificationType {
     COMMENT_ON_POST
     COMMENT_ON_REPLIE
     FOLLOW
+    ACCOUNT_VERIFIED
 }
 model NotificationSetting{
     id Int @unique @default(autoincrement())

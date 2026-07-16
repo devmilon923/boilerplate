@@ -172,6 +172,7 @@ const verifyAccount = handleAsync(async (req: Request, res: Response) => {
       isVerifyed: true,
     },
   });
+  NotificationQueue.verification({ userId: user.id });
   res.clearCookie("verification_token");
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
@@ -190,7 +191,7 @@ const resendOTP = handleAsync(async (req: Request, res: Response) => {
       "Authorization token is required",
     );
   }
-  console.log("===================");
+ 
   const payload: any = decodeToken(verificationToken);
   if (
     payload.type !== "accountVerification" &&

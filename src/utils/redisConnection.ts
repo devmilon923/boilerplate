@@ -1,7 +1,10 @@
 import Redis from "ioredis";
 
-const redisDatabase = new Redis(process.env.RedisURL as string, {
-  tls: {},
+const redisUrl = process.env.RedisURL as string;
+const isTls = redisUrl && redisUrl.startsWith("rediss://");
+
+const redisDatabase = new Redis(redisUrl, {
+  ...(isTls ? { tls: {} } : {}),
   retryStrategy: (times) => Math.min(times * 50, 2000),
   enableReadyCheck: true,
   enableOfflineQueue: true,

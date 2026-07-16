@@ -9,7 +9,7 @@
     "build": "tsc",
     "preview": "node dist/index.js",
     "worker": "nodemon --exec ts-node ./src/queue/worker.ts",
-    "start": "concurrently \"npm run preview\" \"npm run worker\""
+    "start": "npm run build && concurrently \"npm run preview\" \"npm run worker\""
   },
   "repository": {
     "type": "git",
@@ -42,6 +42,7 @@
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
     "@types/nodemailer": "^8.0.0",
+    "axios": "^1.18.1",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.76.6",
     "concurrently": "^10.0.3",

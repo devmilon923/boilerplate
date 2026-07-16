@@ -8,7 +8,7 @@ const getAllNotifications = handleAsync(async (req: Request, res: Response) => {
   const pc = Number(req.query.pc as string) || null;
   const limit = Number(req.query.limit as string) || 10;
   const user = req.user as TJwtUser;
-  console.log(limit);
+
   const result = await prisma.notifications.findMany({
     take: limit,
     skip: pc ? 1 : 0,
@@ -25,7 +25,7 @@ const getAllNotifications = handleAsync(async (req: Request, res: Response) => {
     },
     orderBy: { id: "desc" },
   });
-  console.log(result);
+
   const cursor = result.length === limit ? result[result.length - 1].id : null;
   sendResponse(res, {
     statusCode: httpStatus.OK,

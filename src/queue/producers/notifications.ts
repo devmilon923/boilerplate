@@ -22,6 +22,15 @@ const handleSendLikeNotification = new Queue("handleSendLikeNotification", {
     removeOnComplete: true,
   },
 });
+const handleSendVerificationNotification = new Queue(
+  "handleSendVerificationNotification",
+  {
+    connection: redisDatabase,
+    defaultJobOptions: {
+      removeOnComplete: true,
+    },
+  },
+);
 const handleNotificationSetting = new Queue("handleNotificationSetting", {
   connection: redisDatabase,
   defaultJobOptions: {
@@ -75,10 +84,23 @@ async function comment(params: {
     throw error;
   }
 }
+async function verification(params: { userId: number }) {
+  try {
+    console.log("notification verification producer running");
+    await handleSendVerificationNotification.add(
+      "sendVerificationNotification",
+      params,
+    );
+    console.log("Verification notification added on queue");
+  } catch (error) {
+    throw error;
+  }
+}
 
 export const NotificationQueue = {
   like,
   comment,
   createSetting,
   sendOTP,
+  verification,
 };
