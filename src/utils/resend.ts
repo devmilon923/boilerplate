@@ -14,7 +14,7 @@ export const sendOTP = async ({
 }) => {
   try {
     await resend.emails.send({
-      from: process.env.FROM_EMAIL as string,
+      from: process.env.FROM_EMAIL_FOR_RESEND as string,
       to: [to],
       subject,
       html: `
