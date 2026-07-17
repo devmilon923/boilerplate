@@ -1,14 +1,17 @@
 import Redis from "ioredis";
 
-const redisUrl = process.env.RedisURL as string;
-const isTls = redisUrl && redisUrl.startsWith("rediss://");
+const redisHost =
+  process.env.REDIS_HOST || "storyboard-high-knot.cloud.layerbase.dev";
 
-const redisDatabase = new Redis(redisUrl, {
-  ...(isTls ? { tls: {} } : {}),
-  retryStrategy: (times) => Math.min(times * 50, 2000),
-  enableReadyCheck: true,
-  enableOfflineQueue: true,
+const redisDatabase = new Redis({
+  host: redisHost,
+  port: Number(process.env.REDIS_PORT) || 6379,
+  username: process.env.REDIS_USERNAME || undefined,
+  password: process.env.REDIS_PASSWORD, // Add your password variable here
   maxRetriesPerRequest: null,
+  tls: {
+    servername: redisHost,
+  },
 });
 
 // Connection event listeners

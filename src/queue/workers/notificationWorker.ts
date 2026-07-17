@@ -2,7 +2,7 @@ import { Job, Worker } from "bullmq";
 import { sendNotification } from "../../utils/notifications";
 import { prisma } from "../../utils/prisma";
 import { notificationType } from "../../generated/prisma/enums";
-import { sendOTP } from "../../utils/nodemailer";
+import { sendOTP } from "../../utils/brevo";
 import redisDatabase from "../../utils/redisConnection";
 
 const W_SendLikeNotification = async (
@@ -230,8 +230,12 @@ new Worker("handleSendOtp", W_SendOTP, {
   // Default is 30000ms (30s). 300000ms drops the checks to every 5 minutes.
   stalledInterval: 300000,
 });
-new Worker("handleSendVerificationNotification", W_SendVerificationNotification, {
-  connection: redisDatabase,
-  drainDelay: 300,
-  stalledInterval: 300000,
-});
+new Worker(
+  "handleSendVerificationNotification",
+  W_SendVerificationNotification,
+  {
+    connection: redisDatabase,
+    drainDelay: 300,
+    stalledInterval: 300000,
+  },
+);

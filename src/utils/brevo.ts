@@ -16,7 +16,7 @@ export async function sendOTP({
       "https://api.brevo.com/v3/smtp/email",
       {
         sender: {
-          email: process.env.Nodemailer_GMAIL as string,
+          email: process.env.Brevo_GMAIL as string,
           name: (process.env.APP_NAME ||
             process.env.AppName ||
             "Storyboard") as string,
