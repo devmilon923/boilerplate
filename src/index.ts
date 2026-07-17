@@ -16,7 +16,7 @@ const PORT = process.env.ServerPort || 3000;
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://192.168.31.157:3000", process.env.ClientURl as string],
+    origin: ["https://storiboard.vercel.app", process.env.ClientURl as string],
     credentials: true,
   }),
 );
